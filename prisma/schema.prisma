@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model KakaoUser {
+  kakaoId BigInt @id
+  userId  String @unique @db.Uuid
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id            String  @id @default(uuid()) @db.Uuid
+  username      String  @db.VarChar(30)
+  starredClubId String? @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  posts         Post[]
+  comments      Comment[]
+  subscriptions Subscription[]
+  memberships   Member[]
+  mySchedules   Schedule[]
+  likes         Like[]
+  starredClub   Club?          @relation(fields: [starredClubId], references: [id])
+  applications  Application[]
+  kakaoUser     KakaoUser?
+}
+
+model Club {
+  id          String  @id @default(uuid()) @db.Uuid
+  imageUrl    String  @db.VarChar(500)
+  clubname    String  @unique() @db.VarChar(30)
+  description String  @db.VarChar(200)
+  canApply    Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  clubPosts     Post[]
+  clubSchedules Schedule[]
+  subscriptions Subscription[]
+  memberships   Member[]
+  usersStarred  User[]
+  applications  Application[]
+}
+
+model Post {
+  id             String   @id @default(uuid()) @db.Uuid
+  authorId       String   @db.Uuid
+  clubId         String   @db.Uuid
+  content        String   @db.VarChar(50)
+  imageUrls      String[] @db.VarChar(500)
+  isAnnouncement Boolean
+  isPublic       Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  author   User      @relation(fields: [authorId], references: [id])
+  club     Club      @relation(fields: [clubId], references: [id])
+  comments Comment[]
+  likes    Like[]
+}
+
+model Member {
+  userId  String  @db.Uuid
+  clubId  String  @db.Uuid
+  isAdmin Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  club Club @relation(fields: [clubId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, clubId])
+}
+
+model Comment {
+  commendId String @id @default(uuid())
+  postId    String @db.Uuid
+  authorId  String @db.Uuid
+  content   String @db.VarChar(300)
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [authorId], references: [id])
+}
+
+model Like {
+  authorId String @db.Uuid
+  postId   String @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  author User @relation(fields: [authorId], references: [id])
+  post   Post @relation(fields: [postId], references: [id])
+
+  @@id([authorId, postId])
+}
+
+model Subscription {
+  userId String @db.Uuid
+  clubId String @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+  club Club @relation(fields: [clubId], references: [id])
+
+  @@id([userId, clubId])
+}
+
+model Schedule {
+  id       String @id @default(uuid()) @db.Uuid
+  clubId   String @db.Uuid
+  authorId String @db.Uuid
+
+  name        String   @db.VarChar(50)
+  description String   @db.VarChar(300)
+  startDttm   DateTime @db.Timestamp()
+  endDttm     DateTime @db.Timestamp()
+  imageUrls   String[] @db.VarChar(500)
+  isPublic    Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  club   Club @relation(fields: [clubId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model Application {
+  applicantId String  @db.Uuid
+  clubId      String  @db.Uuid
+  isRejected  Boolean @default(false)
+  isAccepted  Boolean @default(false)
+  isDeleted   Boolean @default(false)
+
+  createdAt  DateTime @default(now()) @db.Timestamp()
+  deletedAt  DateTime @db.Timestamp()
+  rejectedAt DateTime @db.Timestamp()
+  approvedAt DateTime @db.Timestamp()
+
+  applicant User @relation(fields: [applicantId], references: [id])
+  club      Club @relation(fields: [clubId], references: [id])
+
+  @@id([applicantId, clubId])
+}

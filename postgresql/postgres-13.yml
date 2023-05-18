@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      TZ: "Asia/Seoul"
+      POSTGRES_USER: csn
+      POSTGRES_DB: csn
+      POSTGRES_PASSWORD: clubsocialnetwork
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/database/postgresql-13/data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
