@@ -45,6 +45,23 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Description
+
+- Swagger API: http://localhost:3000/api
+- Get test authentication token (expires in 15m): http://localhost:3000/auth/test
+
+## Architecture
+
+request -> middleware -> guard -> interceptor -> pipe -> controller -> service -> interceptor(post request) -> response
+
+[See more](https://docs.nestjs.com/faq/request-lifecycle) about nestjs request lifecycle.
+
+Our application has
+
+- AuthGuard for authentication (currently, authorization is handled by service (todo))
+- ValidationPipe for validation of input
+- ClassSerializerInterceptor for serialization between plain javascript object and class object
+
 ## License
 
 Nest is [MIT licensed](LICENSE).
