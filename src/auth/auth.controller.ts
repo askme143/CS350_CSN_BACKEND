@@ -7,11 +7,11 @@ import {
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Public } from 'src/auth/public/public.decorator';
 import { AuthService } from './auth.service';
 import { LoginKakaoDto } from './dto/login-kakao.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtTokenEntity } from './entities/jwt-token.entity';
+import { Public } from './public.decorator';
 
 @Public()
 @Controller('auth')

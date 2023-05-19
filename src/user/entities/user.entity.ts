@@ -1,11 +1,7 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { User as IUser } from '@prisma/client';
-import {
-  IsBoolean,
-  IsDate,
-  IsNotEmpty,
-  IsOptional,
-  IsUUID,
-} from 'class-validator';
+import { Exclude } from 'class-transformer';
+import { IsDate, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 
 export class UserEntity implements IUser {
   @IsUUID()
@@ -21,6 +17,7 @@ export class UserEntity implements IUser {
   @IsDate()
   createdAt: Date;
 
-  @IsBoolean()
+  @Exclude()
+  @ApiHideProperty()
   isDeleted: boolean;
 }

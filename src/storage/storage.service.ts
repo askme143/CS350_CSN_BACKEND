@@ -22,7 +22,7 @@ export class StorageService {
   }
 
   private publicDownloadUrlOf(path: string): string {
-    return `${this.BASE_URL}/${this.bucket}/${path}`;
+    return `${this.BASE_URL}/${this.bucket}/${encodeURI(path)}`;
   }
 
   async upload(
@@ -37,12 +37,23 @@ export class StorageService {
     );
     const file = this.storage.bucket(this.bucket).file(path);
     const stream = file.createWriteStream();
-    stream.on('finish', async () => {
-      return await file.setMetadata({
-        metadata: metadataObject,
+    const writePromise = new Promise<void>((resolve, reject) => {
+      stream.on('finish', async () => {
+        const meta = await file.setMetadata({
+          metadata: metadataObject,
+        });
+
+        resolve();
+
+        return meta;
+      });
+      stream.on('error', (e) => {
+        reject(e);
       });
     });
     stream.end(media);
+
+    await writePromise;
 
     return this.publicDownloadUrlOf(path);
   }

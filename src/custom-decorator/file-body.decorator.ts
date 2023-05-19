@@ -36,7 +36,7 @@ const FileBodyInner = createParamDecorator(
 );
 
 export const FileBody =
-  (data: string) => (target: Object, key: string | symbol, index: number) => {
+  (data: string) => (target: any, key: string | symbol, index: number) => {
     const pipes = [
       new ValidationPipe({
         validateCustomDecorators: true,

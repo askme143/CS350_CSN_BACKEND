@@ -1,6 +1,6 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import { Club as IClub } from '@prisma/client';
-import { Exclude } from 'class-transformer';
+import { Exclude, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -23,6 +23,7 @@ export class ClubEntity implements IClub {
   description: string;
 
   @IsBoolean()
+  @Type(() => Boolean)
   canApply: boolean;
 
   @IsDateString()

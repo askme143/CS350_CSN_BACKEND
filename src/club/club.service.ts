@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { Prisma } from '@prisma/client';
@@ -56,12 +52,8 @@ export class ClubService {
       },
     };
 
-    try {
-      const club = await this.prismaService.club.create({ data: clubCreate });
-      return club.id;
-    } catch {
-      throw new ConflictException();
-    }
+    const club = await this.prismaService.club.create({ data: clubCreate });
+    return club.id;
   }
 
   async findStarredClubId(userId: string): Promise<string | undefined> {
@@ -145,86 +137,56 @@ export class ClubService {
   }
 
   async updateClub(
-    userId: string,
     clubId: string,
     updateClubDto: UpdateClubDto,
   ): Promise<ClubEntity> {
-    const canUpdate = await this.prismaService.member.count({
-      where: {
-        userId,
-        clubId,
-        isAdmin: true,
-        isDeleted: false,
+    const image = updateClubDto.image;
+    const imageUrl = image
+      ? await this.storageService.upload(
+          this.getClubImagePath(image),
+          image.buffer,
+          [],
+          image.mimetype,
+        )
+      : undefined;
+
+    const clubInfo = await this.prismaService.club.update({
+      where: { id: clubId },
+      data: {
+        clubname: updateClubDto.clubname,
+        description: updateClubDto.description,
+        canApply: updateClubDto.canApply,
+        imageUrl,
       },
     });
 
-    if (!canUpdate) throw new ForbiddenException();
-
-    try {
-      const image = updateClubDto.image;
-      const imageUrl = image
-        ? await this.storageService.upload(
-            this.getClubImagePath(image),
-            image.buffer,
-            [],
-            image.mimetype,
-          )
-        : undefined;
-
-      const clubInfo = await this.prismaService.club.update({
-        where: { id: clubId },
-        data: {
-          clubname: updateClubDto.clubname,
-          description: updateClubDto.description,
-          canApply: updateClubDto.canApply,
-          imageUrl,
-        },
-      });
-
-      return plainToClass(ClubEntity, clubInfo);
-    } catch {
-      throw new ConflictException();
-    }
+    return plainToClass(ClubEntity, clubInfo);
   }
 
-  async removeClub(userId: string, clubId: string): Promise<void> {
-    const canDelete = await this.prismaService.member.count({
-      where: {
-        userId,
-        clubId,
-        isAdmin: true,
-        isDeleted: false,
-      },
-    });
-
-    if (!canDelete) throw new ForbiddenException();
-
-    try {
-      const cascadeUpdateArg = {
-        updateMany: {
-          where: {
-            clubId,
-          },
-          data: {
-            isDeleted: true,
-          },
-        },
-      };
-      await this.prismaService.club.update({
+  async removeClub(clubId: string): Promise<void> {
+    const cascadeUpdateArg = {
+      updateMany: {
         where: {
-          id: clubId,
+          clubId,
         },
         data: {
           isDeleted: true,
-          memberships: cascadeUpdateArg,
-          subscriptions: cascadeUpdateArg,
-          clubPosts: cascadeUpdateArg,
-          clubSchedules: cascadeUpdateArg,
-          applications: cascadeUpdateArg,
         },
-      });
-    } catch (e) {
-      throw new ConflictException();
-    }
+      },
+    };
+
+    await this.prismaService.club.update({
+      where: {
+        id: clubId,
+      },
+      data: {
+        isDeleted: true,
+        memberships: cascadeUpdateArg,
+        subscriptions: cascadeUpdateArg,
+        clubPosts: cascadeUpdateArg,
+        clubSchedules: cascadeUpdateArg,
+        applications: cascadeUpdateArg,
+      },
+    });
   }
 }

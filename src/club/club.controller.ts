@@ -10,22 +10,27 @@ import {
   HttpCode,
   SerializeOptions,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiSecurity } from '@nestjs/swagger';
-import { FileBody } from 'src/file/file.decorator';
-import { JwtPayload } from 'src/auth/auth.decorator';
+import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
 import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { ClubEntity } from './entities/club.entity';
+import { ClubObject, PolicyService } from 'src/policy/policy.service';
+import { FileBody } from 'src/custom-decorator/file-body.decorator';
 
-@ApiSecurity('Authorization')
+@ApiSecurity('Authentication')
 @Controller('clubs')
 export class ClubController {
-  constructor(private readonly clubService: ClubService) {}
+  constructor(
+    private readonly policyService: PolicyService,
+    private readonly clubService: ClubService,
+  ) {}
 
   @Post()
   @ApiConsumes('multipart/form-data')
@@ -33,8 +38,12 @@ export class ClubController {
   async createClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @FileBody('image') createClubDto: CreateClubDto,
-  ) {
-    return this.clubService.createClub(jwtPayload.userId, createClubDto);
+  ): Promise<string> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo('Create', new ClubObject());
+
+    return await this.clubService.createClub(jwtPayload.userId, createClubDto);
   }
 
   @Get()
@@ -44,22 +53,26 @@ export class ClubController {
   ): Promise<string[]> {
     const userId = jwtPayload.userId;
 
+    await this.policyService
+      .user(userId)
+      .shouldBeAbleTo('Read', new ClubObject());
+
     switch (query.type) {
       case GetClubListEnum.Subscribed: {
-        return this.clubService.getSubscribedClubId(userId);
+        return await this.clubService.getSubscribedClubId(userId);
       }
       case GetClubListEnum.Joined: {
-        return this.clubService.getJoinedClubIdList(userId);
+        return await this.clubService.getJoinedClubIdList(userId);
       }
       case GetClubListEnum.Managing: {
-        return this.clubService.getManagingClubIdList(userId);
+        return await this.clubService.getManagingClubIdList(userId);
       }
       case GetClubListEnum.Starred: {
         const starredClubId = await this.clubService.findStarredClubId(userId);
         return starredClubId ? [starredClubId] : [];
       }
       case GetClubListEnum.Search: {
-        return this.clubService.getClubIdList({
+        return await this.clubService.getClubIdList({
           lastClubId: query.lastClubId,
           limit: query.limit,
         });
@@ -69,8 +82,16 @@ export class ClubController {
 
   @Get(':clubId')
   @SerializeOptions({ type: ClubEntity })
-  async getClubInfo(@Param('clubId') clubId: string): Promise<ClubEntity> {
+  async getClubInfo(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('clubId') clubId: string,
+  ): Promise<ClubEntity> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo('Read', new ClubObject(clubId));
+
     const result = await this.clubService.findClubInfo(clubId);
+
     if (result === null) {
       throw new NotFoundException();
     } else {
@@ -79,27 +100,30 @@ export class ClubController {
   }
 
   @Patch(':clubId')
-  @SerializeOptions({ type: ClubEntity })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
-  updateClub(
+  async updateClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Param('clubId') clubId: string,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
     @FileBody('image') updateClubDto: UpdateClubDto,
   ): Promise<ClubEntity> {
-    return this.clubService.updateClub(
-      jwtPayload.userId,
-      clubId,
-      updateClubDto,
-    );
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo('Update', new ClubObject(clubId));
+
+    return await this.clubService.updateClub(clubId, updateClubDto);
   }
 
   @Delete(':clubId')
   @HttpCode(204)
-  removeClub(
+  async removeClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Param('clubId') clubId: string,
-  ) {
-    return this.clubService.removeClub(jwtPayload.userId, clubId);
+    @Param('clubId', ParseUUIDPipe) clubId: string,
+  ): Promise<void> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo('Delete', new ClubObject(clubId));
+
+    await this.clubService.removeClub(clubId);
   }
 }

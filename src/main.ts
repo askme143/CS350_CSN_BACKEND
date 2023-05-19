@@ -1,7 +1,8 @@
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import { NestFactory, Reflector } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AllExceptionFilter } from './exception/all-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,11 +10,14 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: false, whitelist: true }));
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionFilter(httpAdapter));
+
   const config = new DocumentBuilder()
     .setTitle('Club Social Network')
     .setDescription('The CSN(Club Social Network) API description')
     .setVersion('1.0')
-    .addSecurity('Authorization', {
+    .addSecurity('Authentication', {
       type: 'http',
       scheme: 'bearer',
     })
