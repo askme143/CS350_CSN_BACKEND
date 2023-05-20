@@ -20,4 +20,7 @@ describe('ClubService', () => {
       .compile();
   });
   it('always true', () => {});
+  it('always false', () => {
+    expect(1).toEqual(2);
+  });
 });
