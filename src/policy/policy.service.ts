@@ -21,14 +21,12 @@ export interface IPolicyCanArg {
 export class PolicyService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  user = (userId: string) => {
-    return {
-      shouldBeAbleTo: async (action: Action, object: PolicyObject) => {
-        const can = await this.can({ userId, action, object });
-        if (!can) throw new ForbiddenException();
-      },
-    };
-  };
+  user = (userId: string) => ({
+    shouldBeAbleTo: async (action: Action, object: PolicyObject) => {
+      const can = await this.can({ userId, action, object });
+      if (!can) throw new ForbiddenException();
+    },
+  });
 
   private async can({
     userId,

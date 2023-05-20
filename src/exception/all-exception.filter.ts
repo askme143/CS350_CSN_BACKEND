@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpServer,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';

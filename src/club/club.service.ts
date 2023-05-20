@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { Prisma } from '@prisma/client';
@@ -56,7 +56,7 @@ export class ClubService {
     return club.id;
   }
 
-  async findStarredClubId(userId: string): Promise<string | undefined> {
+  async findStarredClubId(userId: string): Promise<string | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
       select: {
@@ -68,7 +68,7 @@ export class ClubService {
       },
     });
 
-    return user?.starredClub?.id ?? undefined;
+    return user?.starredClub?.id ?? null;
   }
   async getSubscribedClubId(userId: string) {
     const clubIdList = await this.prismaService.subscription.findMany({
@@ -179,6 +179,7 @@ export class ClubService {
       where: {
         id: clubId,
       },
+
       data: {
         isDeleted: true,
         memberships: cascadeUpdateArg,
