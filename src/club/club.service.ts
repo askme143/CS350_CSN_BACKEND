@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { CreateClubDto } from './dto/create-club.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { ClubEntity } from './entities/club.entity';
+import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
 
 export interface IGetClubListArg {
@@ -25,6 +26,29 @@ export class ClubService {
 
   private getClubImagePath(image: Express.Multer.File): string {
     return 'club/' + Date.now() + '-' + image.originalname;
+  }
+
+  private async makeClubInfoDtoFromClubEntity(
+    clubEntity: ClubEntity,
+  ): Promise<ClubInfoDto> {
+    const clubId = clubEntity.id;
+    const memberCount = await this.prismaService.member.count({
+      where: { clubId, isDeleted: false },
+    });
+    const adminIds = (
+      await this.prismaService.member.findMany({
+        where: {
+          clubId,
+          isAdmin: true,
+          isDeleted: false,
+        },
+        select: {
+          userId: true,
+        },
+      })
+    ).map(({ userId }) => userId);
+
+    return plainToClass(ClubInfoDto, { ...clubEntity, adminIds, memberCount });
   }
 
   async createClub(
@@ -60,15 +84,11 @@ export class ClubService {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
       select: {
-        starredClub: {
-          select: {
-            id: true,
-          },
-        },
+        starredClubId: true,
       },
     });
 
-    return user?.starredClub?.id ?? null;
+    return user?.starredClubId ?? null;
   }
   async getSubscribedClubId(userId: string) {
     const clubIdList = await this.prismaService.subscription.findMany({
@@ -98,7 +118,8 @@ export class ClubService {
         isDeleted: false,
       },
     });
-    return clubIdList.map((member) => member.clubId);
+    const result = clubIdList.map((member) => member.clubId);
+    return result;
   }
 
   async getClubIdList({ lastClubId, limit }: IGetClubListArg) {
@@ -129,17 +150,20 @@ export class ClubService {
     return clubList.map((club) => club.id);
   }
 
-  async findClubInfo(clubId: string): Promise<ClubEntity | null> {
-    const clubEntity = await this.prismaService.club.findUnique({
-      where: { id: clubId },
-    });
-    return clubEntity ? plainToClass(ClubEntity, clubEntity) : null;
+  async findClubInfo(clubId: string): Promise<ClubInfoDto | null> {
+    const clubEntity: ClubEntity | null =
+      await this.prismaService.club.findUnique({
+        where: { id: clubId },
+      });
+
+    if (clubEntity === null) return null;
+    return this.makeClubInfoDtoFromClubEntity(clubEntity);
   }
 
   async updateClub(
     clubId: string,
     updateClubDto: UpdateClubDto,
-  ): Promise<ClubEntity> {
+  ): Promise<ClubInfoDto> {
     const image = updateClubDto.image;
     const imageUrl = image
       ? await this.storageService.upload(
@@ -150,7 +174,7 @@ export class ClubService {
         )
       : undefined;
 
-    const clubInfo = await this.prismaService.club.update({
+    const clubEntity = await this.prismaService.club.update({
       where: { id: clubId },
       data: {
         clubname: updateClubDto.clubname,
@@ -160,7 +184,7 @@ export class ClubService {
       },
     });
 
-    return plainToClass(ClubEntity, clubInfo);
+    return this.makeClubInfoDtoFromClubEntity(clubEntity);
   }
 
   async removeClub(clubId: string): Promise<void> {
