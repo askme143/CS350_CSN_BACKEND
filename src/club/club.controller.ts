@@ -23,6 +23,7 @@ import { UpdateClubDto } from './dto/update-club.dto';
 import { ClubEntity } from './entities/club.entity';
 import { ClubObject, PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
+import { ClubInfoDto } from './dto/club-info.dto';
 
 @ApiSecurity('Authentication')
 @Controller('clubs')
@@ -85,7 +86,7 @@ export class ClubController {
   async getClubInfo(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId') clubId: string,
-  ): Promise<ClubEntity> {
+  ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo('Read', new ClubObject(clubId));
@@ -106,7 +107,7 @@ export class ClubController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
     @FileBody('image') updateClubDto: UpdateClubDto,
-  ): Promise<ClubEntity> {
+  ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo('Update', new ClubObject(clubId));

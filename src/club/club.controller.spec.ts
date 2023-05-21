@@ -5,18 +5,20 @@ import { PolicyService } from '../policy/policy.service';
 import { ClubController } from './club.controller';
 import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
-import { GetClubListEnum } from './dto/get-club-list.dto';
+import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { ClubEntity } from './entities/club.entity';
 import { mockDeep } from 'jest-mock-extended';
 import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
+import { ClubInfoDto } from './dto/club-info.dto';
+import { plainToClass } from 'class-transformer';
 
 const moduleMocker = new ModuleMocker(global);
 
 describe('ClubController', () => {
   let clubController: ClubController;
   let clubService: ClubService;
-  let userJwtPayload: JwtPayloadEntity = {
+  const userJwtPayload: JwtPayloadEntity = {
     userId: 'userId',
     username: 'username',
   };
@@ -71,13 +73,29 @@ describe('ClubController', () => {
       ];
 
       for (const type of types) {
+        const getClubListDto = plainToClass(GetClubListDto, { type });
         expect(
           await clubController.getClubList(
             { userId: '', username: '' },
-            { type },
+            getClubListDto,
           ),
         ).toEqual(result);
       }
+
+      const getClubListDto = plainToClass(GetClubListDto, {
+        type: GetClubListEnum.Search,
+        limit: '1',
+      });
+      jest
+        .spyOn(clubService, 'getClubIdList')
+        .mockResolvedValue(result.slice(0, 1));
+      expect(
+        await clubController.getClubList(
+          { userId: '', username: '' },
+          getClubListDto,
+        ),
+      ).toEqual(result.slice(0, 1));
+
       expect(
         await clubController.getClubList(userJwtPayload, {
           type: GetClubListEnum.Starred,
@@ -96,11 +114,11 @@ describe('ClubController', () => {
   });
 
   describe('getClubInfo', () => {
-    it('should return club entity', async () => {
+    it('should return club info', async () => {
       const clubId = 'clubId';
       jest
         .spyOn(clubService, 'findClubInfo')
-        .mockResolvedValue(new ClubEntity());
+        .mockResolvedValue(new ClubInfoDto());
 
       expect(
         await clubController.getClubInfo(userJwtPayload, clubId),
@@ -128,13 +146,13 @@ describe('ClubController', () => {
   describe('updateClub', () => {
     it('should return clubEntity', async () => {
       const clubId = 'clubId';
-      const clubEntity = new ClubEntity();
+      const clubInfoDto = new ClubInfoDto();
 
       jest
         .spyOn(clubService, 'updateClub')
         .mockImplementation(
           async (_clubId: string, _updateClubDto: UpdateClubDto) => {
-            return clubEntity;
+            return clubInfoDto;
           },
         );
 
@@ -144,7 +162,7 @@ describe('ClubController', () => {
           clubId,
           new UpdateClubDto(),
         ),
-      ).toEqual(clubEntity);
+      ).toEqual(clubInfoDto);
     });
   });
 
