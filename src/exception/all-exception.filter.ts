@@ -18,10 +18,10 @@ export class AllExceptionFilter extends BaseExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     if (exception instanceof HttpException) return super.catch(exception, host);
 
-    console.error('exception handler (start)-----------');
-    console.error(new Date().toString());
-    console.error(exception);
-    console.error('exception handler (end)-----------');
+    console.log('exception handler (start)-----------');
+    console.log(new Date().toString());
+    console.log(exception);
+    console.log('exception handler (end)-----------');
 
     if (exception instanceof PrismaClientKnownRequestError) {
       if (exception.code === 'P2003') {
