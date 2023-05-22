@@ -1,7 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
 import { firstValueFrom, map } from 'rxjs';
-import { KakaoUserInfo } from './entities/kakao-user-info.entity';
+import { KakaoUserInfoEntity } from './entities/kakao-user-info.entity';
 
 @Injectable()
 export class KakaoApiService {
@@ -25,7 +26,7 @@ export class KakaoApiService {
     const accessToken = await firstValueFrom(
       this.httpService
         .request(options)
-        .pipe(map((response) => response.data['access_token'])),
+        .pipe(map((response) => response.data?.['access_token'])),
     );
     if (accessToken === undefined) throw new UnauthorizedException();
 
@@ -34,7 +35,7 @@ export class KakaoApiService {
 
   private async requestKakaoUserInfo(
     accessToken: string,
-  ): Promise<KakaoUserInfo> {
+  ): Promise<KakaoUserInfoEntity> {
     const options = {
       method: 'GET',
       url: 'https://kapi.kakao.com/v2/user/me',
@@ -47,8 +48,8 @@ export class KakaoApiService {
       .request(options)
       .pipe(
         map((response) => [
-          response.data['id'],
-          response.data['kakao_account']['profile']['nickname'],
+          response.data?.['id'],
+          response.data?.['kakao_account']?.['profile']?.['nickname'],
         ]),
       );
 
@@ -57,10 +58,10 @@ export class KakaoApiService {
     if (kakaoId === undefined || nickname === undefined)
       throw new UnauthorizedException();
 
-    return { kakaoId, nickname };
+    return plainToClass(KakaoUserInfoEntity, { kakaoId, nickname });
   }
 
-  async getKakaoUserInfo(authCode: string): Promise<KakaoUserInfo> {
+  async getKakaoUserInfo(authCode: string): Promise<KakaoUserInfoEntity> {
     const accessToken = await this.requestKakaoAccessToken(authCode);
     return this.requestKakaoUserInfo(accessToken);
   }

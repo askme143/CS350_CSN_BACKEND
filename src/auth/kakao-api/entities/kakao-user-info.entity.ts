@@ -1,4 +1,4 @@
-export class KakaoUserInfo {
+export class KakaoUserInfoEntity {
   kakaoId: number;
   nickname: string;
 }

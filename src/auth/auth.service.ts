@@ -39,7 +39,7 @@ export class AuthService {
 
     const payload = { username, userId: id };
 
-    return this.issueToken(payload);
+    return await this.issueToken(payload);
   }
 
   async reissueToken(refreshToken: string): Promise<JwtTokenEntity> {
@@ -54,7 +54,7 @@ export class AuthService {
       const id = payload.userId;
 
       if (await this.userService.findUserById(id)) {
-        return this.issueToken(payload);
+        return await this.issueToken(payload);
       } else {
         throw new BadRequestException();
       }

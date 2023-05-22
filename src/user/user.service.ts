@@ -6,15 +6,13 @@ import { UserEntity } from './entities/user.entity';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  private async findUserByKakaoId(
-    kakaoId: number,
-  ): Promise<UserEntity | undefined> {
+  private async findUserByKakaoId(kakaoId: number): Promise<UserEntity | null> {
     const user = await this.prismaService.kakaoUser.findUnique({
       where: { kakaoId },
       select: { user: true },
     });
 
-    return user?.user;
+    return user?.user ?? null;
   }
 
   private async createUserByKakaoId(
@@ -37,9 +35,7 @@ export class UserService {
     return user;
   }
 
-  async findUserById(id: string): Promise<UserEntity | undefined> {
-    return (
-      (await this.prismaService.user.findUnique({ where: { id } })) ?? undefined
-    );
+  async findUserById(id: string): Promise<UserEntity | null> {
+    return await this.prismaService.user.findUnique({ where: { id } });
   }
 }
