@@ -19,7 +19,7 @@ export class UserService {
     kakaoId: number,
     username: string,
   ): Promise<UserEntity> {
-    return this.prismaService.user.create({
+    return await this.prismaService.user.create({
       data: { username, kakaoUser: { create: { kakaoId } } },
     });
   }

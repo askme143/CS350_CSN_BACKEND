@@ -18,8 +18,8 @@ import { Public } from './public.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Get('test')
-  getTestToken(): Promise<JwtTokenEntity> {
-    return this.authService.issueToken({
+  async getTestToken(): Promise<JwtTokenEntity> {
+    return await this.authService.issueToken({
       username: 'test',
       userId: '8e320339-7498-4873-b9fc-9b6681e2020f',
     });
@@ -38,10 +38,10 @@ export class AuthController {
   async refreshToken(
     @Body() { refreshToken }: RefreshTokenDto,
   ): Promise<JwtTokenEntity> {
-    if (refreshToken === undefined) {
-      throw new BadRequestException('Refresh token needed');
+    try {
+      return await this.authService.reissueToken(refreshToken);
+    } catch {
+      throw new BadRequestException();
     }
-
-    return await this.authService.reissueToken(refreshToken);
   }
 }
