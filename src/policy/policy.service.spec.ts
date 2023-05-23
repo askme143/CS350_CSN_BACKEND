@@ -1,6 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Member } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClubObject, PolicyService } from './policy.service';

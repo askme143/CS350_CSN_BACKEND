@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { mockDeep } from 'jest-mock-extended';
-import { firstValueFrom, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { KakaoApiService } from './kakao-api.service';
 
 describe('KakaoApiService', () => {

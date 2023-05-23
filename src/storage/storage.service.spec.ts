@@ -1,6 +1,5 @@
 import { Bucket, File } from '@google-cloud/storage';
 import * as GoogleStorage from '@google-cloud/storage';
-import { Test } from '@nestjs/testing';
 import { mockDeep } from 'jest-mock-extended';
 import { PassThrough } from 'stream';
 import { storageConfig } from './storage.constants';

@@ -8,7 +8,6 @@ import {
   Query,
   UseInterceptors,
   HttpCode,
-  SerializeOptions,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -20,7 +19,6 @@ import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
 import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
-import { ClubEntity } from './entities/club.entity';
 import { ClubObject, PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ClubInfoDto } from './dto/club-info.dto';
@@ -82,10 +80,9 @@ export class ClubController {
   }
 
   @Get(':clubId')
-  @SerializeOptions({ type: ClubEntity })
   async getClubInfo(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Param('clubId') clubId: string,
+    @Param('clubId', new ParseUUIDPipe()) clubId: string,
   ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
