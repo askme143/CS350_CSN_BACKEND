@@ -112,6 +112,7 @@ describe('AuthService', () => {
         .mockResolvedValue(mockDeep<User>());
 
       const tokenEntity = await authService.reissueToken('refresh token');
+
       expect(tokenEntity.accessToken).toBeDefined();
       expect(tokenEntity.refreshToken).toBeDefined();
       expect(

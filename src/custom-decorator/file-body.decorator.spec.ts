@@ -1,4 +1,4 @@
-import { FileTypeValidator, Get, ValidationPipe } from '@nestjs/common';
+import { FileTypeValidator, Get } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { IsBoolean, IsDefined, IsInt } from 'class-validator';
 import { mockDeep } from 'jest-mock-extended';
