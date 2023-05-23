@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { User } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
+import { UserEntity } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { jwtConstants } from './auth.constants';
 import { AuthService } from './auth.service';
@@ -73,7 +73,7 @@ describe('AuthService', () => {
         .spyOn(kakaoApiService, 'getKakaoUserInfo')
         .mockResolvedValue({ kakaoId: 0, nickname: 'nickname' });
 
-      const user = mockDeep<User>();
+      const user = mockDeep<UserEntity>();
       user.id = userId;
       user.username = username;
 
@@ -109,7 +109,7 @@ describe('AuthService', () => {
       jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(payload);
       jest
         .spyOn(userService, 'findUserById')
-        .mockResolvedValue(mockDeep<User>());
+        .mockResolvedValue(mockDeep<UserEntity>());
 
       const tokenEntity = await authService.reissueToken('refresh token');
 

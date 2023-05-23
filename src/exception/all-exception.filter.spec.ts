@@ -1,7 +1,6 @@
 import {
   ArgumentsHost,
   ForbiddenException,
-  HttpException,
   HttpServer,
   InternalServerErrorException,
   UnauthorizedException,
@@ -15,7 +14,9 @@ describe('AllExceptionFilter', () => {
   const exceptionFilter = new AllExceptionFilter(mockDeep<HttpServer>());
   const argumentsHost = mockDeep<ArgumentsHost>();
 
-  jest.spyOn(console, 'log').mockImplementation(() => {});
+  jest.spyOn(console, 'log').mockImplementation(() => {
+    //
+  });
 
   it('should return internal server error for unknown error', () => {
     const baseFilterSpy = jest.spyOn(BaseExceptionFilter.prototype, 'catch');
