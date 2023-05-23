@@ -14,6 +14,8 @@ describe('PrismaService', () => {
 
     app = moduleRef.createNestApplication();
     prismaService = app.get(PrismaService);
+
+    jest.spyOn(prismaService, '$connect').mockResolvedValue();
   });
 
   it('should connect and disconnect successfully', async () => {
