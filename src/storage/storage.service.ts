@@ -1,7 +1,5 @@
-import { DownloadResponse, Storage } from '@google-cloud/storage';
-import { MetadataResponse } from '@google-cloud/storage/build/src/nodejs-common';
+import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
-import { StorageFileEntity } from './entities/storage-file.entity';
 import { storageConfig } from './storage.constants';
 
 @Injectable()
@@ -56,44 +54,5 @@ export class StorageService {
     await writePromise;
 
     return this.publicDownloadUrlOf(path);
-  }
-
-  delete(path: string) {
-    this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .delete({ ignoreNotFound: true });
-  }
-
-  async downloadFile(path: string): Promise<StorageFileEntity> {
-    const [buffer]: DownloadResponse = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .download();
-    const storageFile = new StorageFileEntity(
-      buffer,
-      new Map<string, string>([]),
-      '',
-    );
-
-    return storageFile;
-  }
-
-  async downloadFileWithMetadata(path: string): Promise<StorageFileEntity> {
-    const [metadata]: MetadataResponse = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .getMetadata();
-    const [buffer]: DownloadResponse = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .download();
-    const storageFile = new StorageFileEntity(
-      buffer,
-      new Map<string, string>(Object.entries(metadata ?? {})),
-      metadata.get('contentType'),
-    );
-
-    return storageFile;
   }
 }
