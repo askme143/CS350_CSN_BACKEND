@@ -232,7 +232,7 @@ describe('ClubService', () => {
 
       it('should return club id array after last club id', async () => {
         const limit = 100;
-        const lastClubId = 'clubId50';
+        const lastClubName = 'club50';
 
         prismaService.club.findMany = jest
           .fn()
@@ -242,12 +242,15 @@ describe('ClubService', () => {
 
         expect(
           await clubService.getClubIdList({
-            lastClubId,
+            lastClubName,
             limit,
           }),
         ).toEqual(wholeClubIds.slice(50, clubService['getResultLimit'](limit)));
         expect(prismaService.club.findMany).toBeCalledWith(
-          expect.objectContaining({ cursor: { id: lastClubId }, skip: 1 }),
+          expect.objectContaining({
+            cursor: { clubname: lastClubName },
+            skip: 1,
+          }),
         );
       });
     });
