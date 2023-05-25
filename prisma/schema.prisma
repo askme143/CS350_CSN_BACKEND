@@ -67,6 +67,8 @@ model Post {
   club     Club      @relation(fields: [clubId], references: [id])
   comments Comment[]
   likes    Like[]
+
+  @@index([createdAt, id])
 }
 
 model Member {
