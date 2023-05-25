@@ -9,7 +9,7 @@ import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
 
 export interface IGetClubListArg {
-  lastClubId?: string;
+  lastClubName?: string;
   limit?: number;
 }
 
@@ -122,30 +122,27 @@ export class ClubService {
     return result;
   }
 
-  async getClubIdList({ lastClubId, limit }: IGetClubListArg) {
+  async getClubIdList({ lastClubName, limit }: IGetClubListArg) {
     const resultLimit = this.getResultLimit(limit);
 
-    const clubList = lastClubId
-      ? await this.prismaService.club.findMany({
-          cursor: { id: lastClubId },
-          skip: 1,
-          take: resultLimit,
-          where: {
-            isDeleted: false,
-          },
-          orderBy: {
-            clubname: 'asc',
-          },
-          select: { id: true },
-        })
-      : await this.prismaService.club.findMany({
-          take: resultLimit,
-          where: {
-            isDeleted: false,
-          },
-          orderBy: { clubname: 'asc' },
-          select: { id: true },
-        });
+    const clubList = await this.prismaService.club.findMany({
+      ...(lastClubName
+        ? {
+            cursor: {
+              clubname: lastClubName,
+            },
+            skip: 1,
+          }
+        : {}),
+      take: resultLimit,
+      where: {
+        isDeleted: false,
+      },
+      orderBy: {
+        clubname: 'asc',
+      },
+      select: { id: true },
+    });
 
     return clubList.map((club) => club.id);
   }
