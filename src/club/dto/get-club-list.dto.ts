@@ -13,9 +13,9 @@ export class GetClubListDto {
   @IsEnum(GetClubListEnum)
   type: GetClubListEnum;
 
-  @IsNotEmpty()
   @IsOptional()
-  lastClubId?: string;
+  @IsNotEmpty()
+  lastClubName?: string;
 
   @IsInt()
   @IsOptional()

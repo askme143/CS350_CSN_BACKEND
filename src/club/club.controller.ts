@@ -72,7 +72,7 @@ export class ClubController {
       }
       case GetClubListEnum.Search: {
         return await this.clubService.getClubIdList({
-          lastClubId: query.lastClubId,
+          lastClubName: query.lastClubName,
           limit: query.limit,
         });
       }
