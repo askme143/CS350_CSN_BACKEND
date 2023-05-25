@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsInt, IsOptional, IsUUID } from 'class-validator';
+import { PostPaginationDto } from './post-pagination.dto';
 
 export enum GetClubPostListEnum {
   Announcement = 'ANNOUNCEMENT',
   Ordinary = 'ORDINARY',
 }
 
-export class GetClubPostListDto {
+export class GetClubPostListDto extends PostPaginationDto {
   @IsUUID()
   clubId: string;
 
@@ -16,13 +17,4 @@ export class GetClubPostListDto {
   @IsOptional()
   @IsInt()
   limit?: number;
-
-  @IsOptional()
-  @IsUUID()
-  lastPostId?: string;
-
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  lastCreatedAt?: Date;
 }
