@@ -1,0 +1,18 @@
+import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
+import { ScheduleEntity } from '../entities/schedule.entity';
+import { IsDefined, IsEnum, IsNumber, IsUUID } from 'class-validator';
+
+
+export enum ScheduleType {
+    JOINED, STARRED
+}
+
+export class ScheduleDto extends OmitType(ScheduleEntity, ['isDeleted']){} 
+
+export class ScheduleCreateDto extends PickType(ScheduleEntity, ['clubId', 'authorId', 'name', 'description', 'startDttm', 'endDttm', 'isPublic' ]){
+    @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' } })
+    @IsDefined()
+    images: [Express.Multer.File];
+} 
+
+export class ScheduleUpdateDto extends PartialType(ScheduleCreateDto){} 
