@@ -20,7 +20,7 @@ export class ScheduleCreateDto extends PickType(ScheduleEntity, [
 ]) {
   @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' } })
   @IsDefined()
-  images: [Express.Multer.File];
+  images: Express.Multer.File[];
 }
 
 export class ScheduleUpdateDto extends PartialType(ScheduleCreateDto) {}

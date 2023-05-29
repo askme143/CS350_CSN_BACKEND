@@ -11,10 +11,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
+import { UseFile } from 'src/custom-decorator/use-file.decorator';
 import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -52,12 +53,12 @@ export class PostController {
   }
 
   @Patch(':postId')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseFile(UpdatePostDto, 'images', 'FILES')
   async updatePost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('postId', ParseUUIDPipe) postId: string,
-    @FileBody({ bodyKey: 'images', type: 'FILES' }) body: UpdatePostDto,
+    @FileBody(UpdatePostDto, { filePropertyKey: 'images', type: 'FILES' })
+    body: UpdatePostDto,
   ) {
     return await this.postService.updatePost(jwtPayload.userId, postId, body);
   }

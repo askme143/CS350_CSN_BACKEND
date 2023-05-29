@@ -11,8 +11,8 @@ import {
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubService } from './club.service';
@@ -26,6 +26,7 @@ import { PostService } from 'src/post/post.service';
 import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
 import { CreatePostDto } from 'src/post/dto/create-post.dto';
 import { PostInfoDto } from 'src/post/dto/post-info.dto';
+import { UseFile } from 'src/custom-decorator/use-file.decorator';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -38,11 +39,11 @@ export class ClubController {
   ) {}
 
   @Post()
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseFile(CreateClubDto, 'image', 'FILE')
   async createClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody({ bodyKey: 'image', type: 'FILE' }) createClubDto: CreateClubDto,
+    @FileBody(CreateClubDto, { filePropertyKey: 'image', type: 'FILE' })
+    createClubDto: CreateClubDto,
   ): Promise<string> {
     await this.policyService
       .user(jwtPayload.userId)
@@ -104,12 +105,12 @@ export class ClubController {
   }
 
   @Patch(':clubId')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseFile(UpdateClubDto, 'image', 'FILE')
   async updateClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-    @FileBody({ bodyKey: 'image', type: 'FILE' }) updateClubDto: UpdateClubDto,
+    @FileBody(UpdateClubDto, { filePropertyKey: 'image', type: 'FILE' })
+    updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
@@ -143,11 +144,11 @@ export class ClubController {
   }
 
   @Post(':clubId/posts')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseFile(CreatePostDto, 'images', 'FILES')
   async createClubPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody({ bodyKey: 'images', type: 'FILES' }) body: CreatePostDto,
+    @FileBody(CreatePostDto, { filePropertyKey: 'images', type: 'FILES' })
+    body: CreatePostDto,
   ): Promise<PostInfoDto> {
     return await this.postService.createClubPost(jwtPayload.userId, body);
   }
