@@ -60,11 +60,10 @@ describe('ScheduleController', () => {
 
       jest.spyOn(scheduleService, 'getSchedules').mockResolvedValue(result);
       expect(
-        await scheduleController.getSchedules(
-          userJwtPayload,
-          ScheduleType.JOINED,
-          3,
-        ),
+        await scheduleController.getSchedules(userJwtPayload, {
+          type: ScheduleType.JOINED,
+          month: 3,
+        }),
       ).toEqual({ scheduleData: result });
     });
   });

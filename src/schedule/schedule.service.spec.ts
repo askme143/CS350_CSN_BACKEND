@@ -101,7 +101,10 @@ describe('ClubService', () => {
         .spyOn(clubService, 'getJoinedClubIdList')
         .mockResolvedValue([clubId]);
       expect(
-        await scheduleService.getSchedules(userId, ScheduleType.JOINED, 1),
+        await scheduleService.getSchedules(userId, {
+          type: ScheduleType.JOINED,
+          month: 1,
+        }),
       ).toEqual({ clubId: [] });
     });
 
@@ -115,7 +118,10 @@ describe('ClubService', () => {
         .spyOn(clubService, 'getSubscribedClubId')
         .mockResolvedValue([clubId]);
       expect(
-        await scheduleService.getSchedules(userId, ScheduleType.SUBSCRIBED, 1),
+        await scheduleService.getSchedules(userId, {
+          type: ScheduleType.SUBSCRIBED,
+          month: 1,
+        }),
       ).toEqual({ clubId: [] });
     });
   });
