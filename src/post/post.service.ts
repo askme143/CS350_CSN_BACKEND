@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetClubPostListDto } from './dto/get-club-post-list.dto';
 import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { CommentEntity } from './entities/comment.entity';
 import { PostQueryBuilder } from './post-query-builder';
 
 @Injectable()
@@ -137,6 +140,58 @@ export class PostService {
         isDeleted: true,
         comments: isDeletedUpdate,
         likes: isDeletedUpdate,
+      },
+    });
+  }
+
+  // Comments
+
+  async createComment(
+    authorId: string,
+    postId: string,
+    { content }: CreateCommentDto,
+  ): Promise<CommentEntity> {
+    const result = await this.prismaService.comment.create({
+      data: {
+        authorId,
+        postId,
+        content,
+      },
+    });
+
+    return plainToInstance(CommentEntity, result);
+  }
+
+  async getComments(postId: string): Promise<CommentEntity[]> {
+    const result = await this.prismaService.comment.findMany({
+      where: {
+        postId,
+        isDeleted: false,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+    return plainToInstance(CommentEntity, result);
+  }
+
+  async updateComment(
+    commentId: string,
+    args: UpdateCommentDto,
+  ): Promise<CommentEntity> {
+    return await this.prismaService.comment.update({
+      where: { commentId },
+      data: { ...args },
+    });
+  }
+
+  async deleteComment(commentId: string): Promise<void> {
+    await this.prismaService.comment.update({
+      where: {
+        commentId,
+      },
+      data: {
+        isDeleted: true,
       },
     });
   }

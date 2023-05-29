@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpServer,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -26,6 +27,8 @@ export class AllExceptionFilter extends BaseExceptionFilter {
     if (exception instanceof PrismaClientKnownRequestError) {
       if (exception.code === 'P2003') {
         return super.catch(new ForbiddenException(), host);
+      } else if (exception.code === 'P2025') {
+        return super.catch(new NotFoundException(), host);
       }
     }
 
