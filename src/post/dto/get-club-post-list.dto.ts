@@ -1,7 +1,8 @@
+import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsUUID } from 'class-validator';
 import { PostPaginationDto } from './post-pagination.dto';
 
-export enum GetClubPostListEnum {
+export enum PostType {
   Announcement = 'ANNOUNCEMENT',
   Ordinary = 'ORDINARY',
 }
@@ -10,10 +11,11 @@ export class GetClubPostListDto extends PostPaginationDto {
   @IsUUID()
   clubId: string;
 
-  @IsEnum(GetClubPostListEnum)
-  postType: GetClubPostListEnum;
+  @IsEnum(PostType)
+  postType: PostType;
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   limit?: number;
 }

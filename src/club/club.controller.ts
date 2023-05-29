@@ -22,6 +22,10 @@ import { UpdateClubDto } from './dto/update-club.dto';
 import { ClubObject, PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ClubInfoDto } from './dto/club-info.dto';
+import { PostService } from 'src/post/post.service';
+import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
+import { CreatePostDto } from 'src/post/dto/create-post.dto';
+import { PostInfoDto } from 'src/post/dto/post-info.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -30,6 +34,7 @@ export class ClubController {
   constructor(
     private readonly policyService: PolicyService,
     private readonly clubService: ClubService,
+    private readonly postService: PostService,
   ) {}
 
   @Post()
@@ -124,5 +129,26 @@ export class ClubController {
       .shouldBeAbleTo('Delete', new ClubObject(clubId));
 
     await this.clubService.removeClub(clubId);
+  }
+
+  @Get(':clubId/posts')
+  async getClubPosts(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Query() queryParams: GetClubPostListDto,
+  ): Promise<PostInfoDto[]> {
+    return await this.postService.getClubPostList(
+      jwtPayload.userId,
+      queryParams,
+    );
+  }
+
+  @Post(':clubId/posts')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('images'))
+  async createClubPost(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @FileBody({ bodyKey: 'images', type: 'FILES' }) body: CreatePostDto,
+  ): Promise<PostInfoDto> {
+    return await this.postService.createClubPost(jwtPayload.userId, body);
   }
 }
