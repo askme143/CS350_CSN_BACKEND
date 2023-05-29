@@ -1,6 +1,6 @@
 import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { ScheduleEntity } from '../entities/schedule.entity';
-import { IsDefined } from 'class-validator';
+import { IsDefined, IsEnum, IsInt } from 'class-validator';
 
 export enum ScheduleType {
   JOINED = 'JOINED',
@@ -24,3 +24,10 @@ export class ScheduleCreateDto extends PickType(ScheduleEntity, [
 }
 
 export class ScheduleUpdateDto extends PartialType(ScheduleCreateDto) {}
+export class ScheduleGetDto {
+  @IsEnum(ScheduleType)
+  type: ScheduleType;
+
+  @IsInt()
+  month: number;
+}

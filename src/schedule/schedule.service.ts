@@ -5,17 +5,13 @@ import { plainToClass } from 'class-transformer';
 import {
   ScheduleCreateDto,
   ScheduleDto,
+  ScheduleGetDto,
   ScheduleType,
 } from './dto/schedule.dto';
 import { StorageService } from 'src/storage/storage.service';
 import * as _ from 'lodash';
 import { ClubService } from 'src/club/club.service';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
-
-export interface IGetClubListArg {
-  lastClubId?: string;
-  limit?: number;
-}
 
 @Injectable()
 export class ScheduleService {
@@ -31,8 +27,7 @@ export class ScheduleService {
 
   async getSchedules(
     userId: string,
-    type: ScheduleType,
-    month: number,
+    { type, month }: ScheduleGetDto,
   ): Promise<_.Dictionary<Schedule[]>> {
     const clubIds = await (async () => {
       if (type == ScheduleType.JOINED)

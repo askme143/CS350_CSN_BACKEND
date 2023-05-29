@@ -11,7 +11,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity } from '@nestjs/swagger';
+import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubObject, PolicyService } from 'src/policy/policy.service';
@@ -20,11 +20,12 @@ import { ScheduleService } from './schedule.service';
 import {
   ScheduleCreateDto,
   ScheduleDto,
-  ScheduleType,
+  ScheduleGetDto,
 } from './dto/schedule.dto';
 
 @ApiSecurity('Authentication')
 @Controller('schedules')
+@ApiTags('schedules')
 export class ScheduleController {
   constructor(
     private readonly policyService: PolicyService,
@@ -48,13 +49,11 @@ export class ScheduleController {
   @Get('')
   async getSchedules(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Query('type') type: ScheduleType,
-    @Query('month') month: number,
+    @Query() query: ScheduleGetDto,
   ) {
     const result = await this.scheduleService.getSchedules(
       jwtPayload.userId,
-      type,
-      month,
+      query,
     );
     if (result === null) {
       throw new NotFoundException();
