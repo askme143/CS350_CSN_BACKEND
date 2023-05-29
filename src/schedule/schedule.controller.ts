@@ -36,7 +36,8 @@ export class ScheduleController {
   @UseInterceptors(FileInterceptor('image'))
   async createSchedule(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody('image') createScheduleDto: ScheduleCreateDto,
+    @FileBody({ bodyKey: 'image', type: 'FILE' })
+    createScheduleDto: ScheduleCreateDto,
   ): Promise<string> {
     return await this.scheduleService.createSchedule(
       jwtPayload,
