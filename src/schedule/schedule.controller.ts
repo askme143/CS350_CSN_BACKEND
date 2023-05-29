@@ -5,13 +5,11 @@ import {
   Param,
   Delete,
   Query,
-  UseInterceptors,
   HttpCode,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubObject, PolicyService } from 'src/policy/policy.service';
@@ -22,6 +20,7 @@ import {
   ScheduleDto,
   ScheduleGetDto,
 } from './dto/schedule.dto';
+import { UseFile } from 'src/custom-decorator/use-file.decorator';
 
 @ApiSecurity('Authentication')
 @Controller('schedules')
@@ -33,11 +32,10 @@ export class ScheduleController {
   ) {}
 
   @Post()
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseFile(ScheduleCreateDto, 'images', 'FILES')
   async createSchedule(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody({ bodyKey: 'image', type: 'FILE' })
+    @FileBody(ScheduleCreateDto, { filePropertyKey: 'images', type: 'FILES' })
     createScheduleDto: ScheduleCreateDto,
   ): Promise<string> {
     return await this.scheduleService.createSchedule(
