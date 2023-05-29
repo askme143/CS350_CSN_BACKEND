@@ -11,7 +11,7 @@ import {
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
@@ -37,7 +37,7 @@ export class ClubController {
   @UseInterceptors(FileInterceptor('image'))
   async createClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody('image') createClubDto: CreateClubDto,
+    @FileBody({ bodyKey: 'image', type: 'FILE' }) createClubDto: CreateClubDto,
   ): Promise<string> {
     await this.policyService
       .user(jwtPayload.userId)
@@ -104,7 +104,7 @@ export class ClubController {
   async updateClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-    @FileBody('image') updateClubDto: UpdateClubDto,
+    @FileBody({ bodyKey: 'image', type: 'FILE' }) updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
