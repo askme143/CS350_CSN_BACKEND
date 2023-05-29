@@ -78,11 +78,13 @@ export class ScheduleController {
 
   @Delete(':scheduleId')
   @HttpCode(204)
-  async removeClub(
+  async removeSchedule(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('scheduleId', ParseUUIDPipe) scheduleId: string,
   ): Promise<void> {
     const schedule = await this.scheduleService.getSchedule(scheduleId);
+    if (schedule === null || schedule == undefined)
+      throw new NotFoundException();
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo('Delete', new ClubObject(schedule.clubId));

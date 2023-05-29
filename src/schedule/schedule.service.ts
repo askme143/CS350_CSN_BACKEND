@@ -72,10 +72,11 @@ export class ScheduleService {
     });
   }
 
-  async getSchedule(scheduleId: string): Promise<ScheduleDto> {
+  async getSchedule(scheduleId: string): Promise<ScheduleDto | null> {
     const schedule = await this.prismaService.schedule.findUnique({
       where: { id: scheduleId },
     });
+    if (schedule === null) return null;
     return plainToClass(ScheduleDto, { ...schedule });
   }
 
