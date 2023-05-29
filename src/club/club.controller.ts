@@ -12,7 +12,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity } from '@nestjs/swagger';
+import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubService } from './club.service';
@@ -24,6 +24,7 @@ import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ClubInfoDto } from './dto/club-info.dto';
 
 @ApiSecurity('Authentication')
+@ApiTags('clubs')
 @Controller('clubs')
 export class ClubController {
   constructor(
