@@ -17,7 +17,7 @@ import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
 import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
-import { ClubObject, PolicyService } from 'src/policy/policy.service';
+import { PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { PostService } from 'src/post/post.service';
@@ -25,6 +25,12 @@ import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
 import { CreatePostDto } from 'src/post/dto/create-post.dto';
 import { PostInfoDto } from 'src/post/dto/post-info.dto';
 import { UseFile } from 'src/custom-decorator/use-file.decorator';
+import {
+  CreateClub,
+  DeleteClub,
+  ReadClub,
+  UpdateClub,
+} from 'src/policy/club-policy';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -45,7 +51,7 @@ export class ClubController {
   ): Promise<string> {
     await this.policyService
       .user(jwtPayload.userId)
-      .shouldBeAbleTo('Create', new ClubObject());
+      .shouldBeAbleTo(new CreateClub());
 
     return await this.clubService.createClub(jwtPayload.userId, createClubDto);
   }
@@ -57,9 +63,7 @@ export class ClubController {
   ): Promise<string[]> {
     const userId = jwtPayload.userId;
 
-    await this.policyService
-      .user(userId)
-      .shouldBeAbleTo('Read', new ClubObject());
+    await this.policyService.user(userId).shouldBeAbleTo(new ReadClub());
 
     switch (query.type) {
       case GetClubListEnum.Subscribed: {
@@ -91,7 +95,7 @@ export class ClubController {
   ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
-      .shouldBeAbleTo('Read', new ClubObject(clubId));
+      .shouldBeAbleTo(new ReadClub());
 
     const result = await this.clubService.findClubInfo(clubId);
 
@@ -112,7 +116,7 @@ export class ClubController {
   ): Promise<ClubInfoDto> {
     await this.policyService
       .user(jwtPayload.userId)
-      .shouldBeAbleTo('Update', new ClubObject(clubId));
+      .shouldBeAbleTo(new UpdateClub(clubId));
 
     return await this.clubService.updateClub(clubId, updateClubDto);
   }
@@ -125,7 +129,7 @@ export class ClubController {
   ): Promise<void> {
     await this.policyService
       .user(jwtPayload.userId)
-      .shouldBeAbleTo('Delete', new ClubObject(clubId));
+      .shouldBeAbleTo(new DeleteClub(clubId));
 
     await this.clubService.removeClub(clubId);
   }
