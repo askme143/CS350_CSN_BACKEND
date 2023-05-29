@@ -199,7 +199,6 @@ describe('ClubController', () => {
         userJwtPayload,
         mockDeep<GetClubPostListDto>(),
       );
-      console.log(result);
 
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
     });
