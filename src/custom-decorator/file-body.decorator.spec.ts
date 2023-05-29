@@ -25,9 +25,9 @@ describe('file-body decorator', () => {
         bodyKey: 'testImage',
         type: 'FILE',
       })
-      fileBody: TestDto,
+      _fileBody: TestDto,
     ) {
-      console.log(fileBody);
+      //
     }
   }
 

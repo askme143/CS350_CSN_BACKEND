@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -32,9 +32,7 @@ export class PostService {
       query,
     );
 
-    return postInfoList.map((item: PostInfoDto) => {
-      return plainToClass(PostInfoDto, item);
-    });
+    return plainToInstance(PostInfoDto, postInfoList);
   }
 
   async getPublicPostList(
@@ -50,7 +48,7 @@ export class PostService {
       query,
     );
 
-    return postInfoList.map((item: any) => plainToClass(PostInfoDto, item));
+    return plainToInstance(PostInfoDto, postInfoList);
   }
 
   async getPost(userId: string, postId: string): Promise<PostInfoDto> {
@@ -58,8 +56,10 @@ export class PostService {
       postId,
     });
 
-    const postInfo = await this.prismaService.$queryRaw(query);
-    return plainToClass(PostInfoDto, postInfo);
+    const postInfo = (
+      (await this.prismaService.$queryRaw(query)) as PostInfoDto[]
+    )[0];
+    return plainToInstance(PostInfoDto, postInfo);
   }
 
   async createClubPost(userId: string, args: CreatePostDto) {
@@ -88,7 +88,7 @@ export class PostService {
       liked: false,
       commentCount: 0,
     };
-    return plainToClass(PostInfoDto, postInfo);
+    return plainToInstance(PostInfoDto, postInfo);
   }
 
   async updatePost(userId: string, postId: string, args: UpdatePostDto) {

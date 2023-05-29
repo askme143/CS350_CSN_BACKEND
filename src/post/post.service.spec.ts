@@ -7,6 +7,8 @@ import { StorageService } from 'src/storage/storage.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostType } from './dto/get-club-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PostQueryBuilder } from './post-query-builder';
 import { PostService } from './post.service';
 
 describe('PostService', () => {
@@ -16,10 +18,12 @@ describe('PostService', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [PostService, PrismaService],
+      providers: [PostService],
     })
       .useMocker((token) => {
         switch (token) {
+          case PostQueryBuilder:
+            return mockDeep<PostQueryBuilder>();
           case PrismaService:
             return mockDeep<PrismaService>();
           case StorageService:
@@ -42,6 +46,47 @@ describe('PostService', () => {
     });
   });
 
+  describe('getPostImagePath', () => {
+    it('should return correct format', () => {
+      const image = mockDeep<Express.Multer.File>();
+      image.originalname = 'image';
+
+      expect(postService['getPostImagePath'](image)).toMatch(
+        new RegExp('post/\\d{13}-' + 'image'),
+      );
+    });
+  });
+
+  describe('isUserMemberOfClub', () => {
+    it('should return false if there is no membership', async () => {
+      const membership = mockDeep<Member>();
+      membership.isDeleted = true;
+
+      jest
+        .spyOn(prismaService.member, 'findUnique')
+        .mockResolvedValue(membership);
+      expect(
+        await postService['isUserMemberOfClub']('userId', 'clubId'),
+      ).toEqual(false);
+
+      jest.spyOn(prismaService.member, 'findUnique').mockResolvedValue(null);
+      expect(
+        await postService['isUserMemberOfClub']('userId', 'clubId'),
+      ).toEqual(false);
+    });
+    it('should return true if there is a membership', async () => {
+      const membership = mockDeep<Member>();
+      membership.isDeleted = false;
+
+      jest
+        .spyOn(prismaService.member, 'findUnique')
+        .mockResolvedValue(membership);
+      expect(
+        await postService['isUserMemberOfClub']('userId', 'clubId'),
+      ).toEqual(true);
+    });
+  });
+
   describe('getClubPostList', () => {
     it('Should return list of PostInfoDto', async () => {
       const postInfoDtoArray = [instanceToPlain(mockDeep<PostInfoDto>())];
@@ -51,7 +96,11 @@ describe('PostService', () => {
       jest
         .spyOn(prismaService, '$queryRaw')
         .mockResolvedValue(postInfoDtoArray);
-      jest.spyOn(prismaService.member, 'findUnique').mockResolvedValue(null);
+
+      // Member
+      jest
+        .spyOn(postService as any, 'isUserMemberOfClub')
+        .mockResolvedValue(false);
 
       let result = await postService.getClubPostList('userId', {
         clubId,
@@ -65,11 +114,10 @@ describe('PostService', () => {
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
 
-      const mockMember = mockDeep<Member>();
-      mockMember.isDeleted = false;
+      // Non meber
       jest
-        .spyOn(prismaService.member, 'findUnique')
-        .mockResolvedValue(mockMember);
+        .spyOn(postService as any, 'isUserMemberOfClub')
+        .mockResolvedValue(true);
       result = await postService.getClubPostList('userId', {
         clubId,
         postType: PostType.Announcement,
@@ -77,6 +125,32 @@ describe('PostService', () => {
         lastCreatedAt: new Date(),
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
+    });
+  });
+
+  describe('getPublicPostList', () => {
+    it('should return list of PostInfoDto', async () => {
+      const postInfoDtoArray = [instanceToPlain(mockDeep<PostInfoDto>())];
+
+      jest
+        .spyOn(prismaService, '$queryRaw')
+        .mockResolvedValue(postInfoDtoArray);
+
+      const result = await postService.getPublicPostList('userId', {});
+      result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
+    });
+  });
+
+  describe('getPost', () => {
+    it('should return PostInfoDto', async () => {
+      const postInfoDtoArray = [instanceToPlain(mockDeep<PostInfoDto>())];
+
+      jest
+        .spyOn(prismaService, '$queryRaw')
+        .mockResolvedValue(postInfoDtoArray);
+
+      const result = await postService.getPost('userId', 'postId');
+      expect(result).toBeInstanceOf(PostInfoDto);
     });
   });
 
@@ -97,17 +171,53 @@ describe('PostService', () => {
     });
   });
 
-  describe('getPublicPostList', () => {
-    it('should return list of PublicIntDto', async () => {
-      const postInfoDtoArray = [instanceToPlain(mockDeep<PostInfoDto>())];
+  describe('updatePost', () => {
+    it('should return PostInfoDto', async () => {
+      const post = mockDeep<Post>();
+      const image = mockDeep<Express.Multer.File>();
+      image.originalname = 'image';
+      const updatePostDto = mockDeep<UpdatePostDto>();
+      updatePostDto.images = [image];
 
-      jest
-        .spyOn(prismaService, '$queryRaw')
-        .mockResolvedValue(postInfoDtoArray);
-      jest.spyOn(prismaService.member, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(storageService, 'upload').mockResolvedValue('url');
+      jest.spyOn(prismaService.post, 'update').mockResolvedValue(post);
+      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([post]);
 
-      const result = await postService.getPublicPostList('userId', {});
-      result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
+      const result = await postService.updatePost(
+        'userId',
+        'postId',
+        updatePostDto,
+      );
+
+      expect(result).toBeInstanceOf(PostInfoDto);
+    });
+    it('should return PostInfoDto (without images)', async () => {
+      const post = mockDeep<Post>();
+      const updatePostDto = mockDeep<UpdatePostDto>();
+      updatePostDto.images = undefined;
+
+      jest.spyOn(prismaService.post, 'update').mockResolvedValue(post);
+      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([post]);
+
+      const result = await postService.updatePost(
+        'userId',
+        'postId',
+        updatePostDto,
+      );
+
+      expect(result).toBeInstanceOf(PostInfoDto);
+    });
+  });
+
+  describe('deletePost', () => {
+    it('should call update', async () => {
+      const updateSpy = jest.spyOn(prismaService.post, 'update');
+      const deleteSpy = jest.spyOn(prismaService.post, 'delete');
+
+      await postService.deletePost('postId');
+
+      expect(updateSpy).toBeCalledTimes(1);
+      expect(deleteSpy).toBeCalledTimes(0);
     });
   });
 });
