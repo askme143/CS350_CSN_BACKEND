@@ -16,6 +16,13 @@ import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { UseFile } from 'src/custom-decorator/use-file.decorator';
+import { PolicyService } from 'src/policy/policy.service';
+import {
+  DeletePost,
+  ReadPost,
+  ReadPublicPost,
+  UpdatePost,
+} from 'src/policy/post-policy';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
@@ -27,13 +34,20 @@ import { PostService } from './post.service';
 @ApiTags('posts')
 @ApiSecurity('Authentication')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly policyService: PolicyService,
+    private readonly postService: PostService,
+  ) {}
 
   @Get()
   async getPublicPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Query() queryParams: GetPublicPostListDto,
   ): Promise<PostInfoDto[]> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadPublicPost());
+
     return await this.postService.getPublicPostList(
       jwtPayload.userId,
       queryParams,
@@ -45,6 +59,10 @@ export class PostController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('postId', ParseUUIDPipe) postId: string,
   ) {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadPost(postId));
+
     const result = await this.postService.getPost(jwtPayload.userId, postId);
 
     if (result === null) {
@@ -62,6 +80,9 @@ export class PostController {
     @FileBody(UpdatePostDto, { filePropertyKey: 'images', type: 'FILES' })
     body: UpdatePostDto,
   ) {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new UpdatePost(postId));
     return await this.postService.updatePost(jwtPayload.userId, postId, body);
   }
 
@@ -71,6 +92,9 @@ export class PostController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('postId', ParseUUIDPipe) postId: string,
   ): Promise<void> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new DeletePost(postId));
     await this.postService.deletePost(postId);
   }
 
