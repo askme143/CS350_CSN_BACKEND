@@ -86,7 +86,7 @@ model Member {
 }
 
 model Comment {
-  commendId String @id @default(uuid())
+  commentId String @id @default(uuid())
   postId    String @db.Uuid
   authorId  String @db.Uuid
   content   String @db.VarChar(300)

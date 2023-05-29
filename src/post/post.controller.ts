@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -7,17 +8,18 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { UseFile } from 'src/custom-decorator/use-file.decorator';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostService } from './post.service';
 
@@ -70,5 +72,45 @@ export class PostController {
     @Param('postId', ParseUUIDPipe) postId: string,
   ): Promise<void> {
     await this.postService.deletePost(postId);
+  }
+
+  @Post(':postId/comments')
+  async createComment(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Body() body: CreateCommentDto,
+  ) {
+    return await this.postService.createComment(
+      jwtPayload.userId,
+      postId,
+      body,
+    );
+  }
+
+  @Get(':postId/comments')
+  async getComments(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('postId', ParseUUIDPipe) postId: string,
+  ) {
+    return await this.postService.getComments(postId);
+  }
+
+  @Patch(':postId/comments/:commentId')
+  async updateComment(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
+    @Body() body: UpdateCommentDto,
+  ) {
+    return await this.postService.updateComment(commentId, body);
+  }
+
+  @Delete(':postId/comments/:commentId')
+  async deleteComment(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
+  ) {
+    return await this.postService.deleteComment(commentId);
   }
 }
