@@ -152,6 +152,12 @@ describe('PostService', () => {
       const result = await postService.getPost('userId', 'postId');
       expect(result).toBeInstanceOf(PostInfoDto);
     });
+    it('should return null', async () => {
+      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([]);
+
+      const result = await postService.getPost('userId', 'postId');
+      expect(result).toBeNull();
+    });
   });
 
   describe('createClubPost', () => {

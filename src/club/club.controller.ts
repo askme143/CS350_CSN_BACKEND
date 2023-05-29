@@ -25,6 +25,7 @@ import { ClubInfoDto } from './dto/club-info.dto';
 import { PostService } from 'src/post/post.service';
 import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
 import { CreatePostDto } from 'src/post/dto/create-post.dto';
+import { PostInfoDto } from 'src/post/dto/post-info.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -134,7 +135,7 @@ export class ClubController {
   async getClubPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Query() queryParams: GetClubPostListDto,
-  ) {
+  ): Promise<PostInfoDto[]> {
     return await this.postService.getClubPostList(
       jwtPayload.userId,
       queryParams,
@@ -147,7 +148,7 @@ export class ClubController {
   async createClubPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @FileBody({ bodyKey: 'images', type: 'FILES' }) body: CreatePostDto,
-  ) {
+  ): Promise<PostInfoDto> {
     return await this.postService.createClubPost(jwtPayload.userId, body);
   }
 }

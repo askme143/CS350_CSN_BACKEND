@@ -51,15 +51,14 @@ export class PostService {
     return plainToInstance(PostInfoDto, postInfoList);
   }
 
-  async getPost(userId: string, postId: string): Promise<PostInfoDto> {
+  async getPost(userId: string, postId: string): Promise<PostInfoDto | null> {
     const query = this.queryBuilder.buildReadOnePostQuery(userId, {
       postId,
     });
 
-    const postInfo = (
-      (await this.prismaService.$queryRaw(query)) as PostInfoDto[]
-    )[0];
-    return plainToInstance(PostInfoDto, postInfo);
+    const result = (await this.prismaService.$queryRaw(query)) as PostInfoDto[];
+
+    return result.length ? plainToInstance(PostInfoDto, result[0]) : null;
   }
 
   async createClubPost(userId: string, args: CreatePostDto) {

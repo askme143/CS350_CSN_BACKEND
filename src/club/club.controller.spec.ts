@@ -12,12 +12,17 @@ import { mockDeep } from 'jest-mock-extended';
 import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
+import { PostService } from 'src/post/post.service';
+import { PostInfoDto } from 'src/post/dto/post-info.dto';
+import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
+import { CreatePostDto } from 'src/post/dto/create-post.dto';
 
 const moduleMocker = new ModuleMocker(global);
 
 describe('ClubController', () => {
   let clubController: ClubController;
   let clubService: ClubService;
+  let postService: PostService;
   const userJwtPayload: JwtPayloadEntity = {
     userId: 'userId',
     username: 'username',
@@ -36,6 +41,8 @@ describe('ClubController', () => {
           }
           case ClubService:
             return mockDeep<ClubService>();
+          case PostService:
+            return mockDeep<PostService>();
         }
         if (typeof token === 'function') {
           const mockMetadata = moduleMocker.getMetadata(
@@ -49,6 +56,7 @@ describe('ClubController', () => {
 
     clubController = moduleRef.get(ClubController);
     clubService = moduleRef.get(ClubService);
+    postService = moduleRef.get(PostService);
   });
 
   describe('getClubList', () => {
@@ -179,6 +187,34 @@ describe('ClubController', () => {
 
       await clubController.removeClub(userJwtPayload, clubId);
       expect(mockDelete).toBeCalled();
+    });
+  });
+
+  describe('getClubPosts', () => {
+    it('should return a list of PostInfoDto', async () => {
+      const postList = [plainToClass(PostInfoDto, mockDeep<PostInfoDto>())];
+      jest.spyOn(postService, 'getClubPostList').mockResolvedValue(postList);
+
+      const result = await clubController.getClubPosts(
+        userJwtPayload,
+        mockDeep<GetClubPostListDto>(),
+      );
+      console.log(result);
+
+      result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
+    });
+  });
+  describe('createClubPost', () => {
+    it('should return a PostInfoDto', async () => {
+      jest
+        .spyOn(postService, 'createClubPost')
+        .mockResolvedValue(plainToClass(PostInfoDto, mockDeep<PostInfoDto>()));
+      expect(
+        await clubController.createClubPost(
+          userJwtPayload,
+          mockDeep<CreatePostDto>(),
+        ),
+      ).toBeInstanceOf(PostInfoDto);
     });
   });
 });

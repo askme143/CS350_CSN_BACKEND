@@ -3,6 +3,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -41,7 +42,13 @@ export class PostController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('postId', ParseUUIDPipe) postId: string,
   ) {
-    return await this.postService.getPost(jwtPayload.userId, postId);
+    const result = await this.postService.getPost(jwtPayload.userId, postId);
+
+    if (result === null) {
+      throw new NotFoundException();
+    } else {
+      return result;
+    }
   }
 
   @Patch(':postId')
