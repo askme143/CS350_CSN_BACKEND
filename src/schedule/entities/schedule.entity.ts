@@ -1,6 +1,4 @@
-import { ApiHideProperty } from '@nestjs/swagger';
 import { Schedule } from '@prisma/client';
-import { Exclude, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -11,39 +9,37 @@ import {
 } from 'class-validator';
 
 export class ScheduleEntity implements Schedule {
-    @IsUUID()
-    id: string
+  @IsUUID()
+  id: string;
 
-    @IsUUID()
-    clubId: string
+  @IsUUID()
+  clubId: string;
 
-    @IsUUID()
-    authorId: string
+  @IsUUID()
+  authorId: string;
 
-    @IsString()
-    name: string
+  @IsString()
+  name: string;
 
-    @IsString()
-    description: string
+  @IsString()
+  description: string;
 
-    // @IsDate()
-    @IsString()
-    startDttm: Date
+  @IsString()
+  startDttm: Date;
 
-    // @IsDate()
-    @IsString()
-    endDttm: Date
+  @IsString()
+  endDttm: Date;
 
-    @IsArray()
-    @IsUrl({ protocols: ['https'] }, { each: true })
-    imageUrls: string[]
+  @IsArray()
+  @IsUrl({ protocols: ['https'] }, { each: true })
+  imageUrls: string[];
 
-    @IsBoolean()
-    isPublic: boolean
+  @IsBoolean()
+  isPublic: boolean;
 
-    @IsDate()
-    createdAt: Date
+  @IsDate()
+  createdAt: Date;
 
-    @IsBoolean()
-    isDeleted: boolean
+  @IsBoolean()
+  isDeleted: boolean;
 }
