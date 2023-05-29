@@ -7,6 +7,7 @@ import {
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginKakaoDto } from './dto/login-kakao.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -14,6 +15,7 @@ import { JwtTokenEntity } from './entities/jwt-token.entity';
 import { Public } from './public.decorator';
 
 @Public()
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

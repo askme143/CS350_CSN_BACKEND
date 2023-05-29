@@ -20,7 +20,13 @@ describe('file-body decorator', () => {
 
   class TestController {
     @Get()
-    testPrint(@FileBody('testImage') fileBody: TestDto) {
+    testPrint(
+      @FileBody({
+        bodyKey: 'testImage',
+        type: 'FILE',
+      })
+      fileBody: TestDto,
+    ) {
       console.log(fileBody);
     }
   }
@@ -45,10 +51,13 @@ describe('file-body decorator', () => {
     const fileTypeValidator = new FileTypeValidator({
       fileType: /(jpg|jpeg|png|gif)$/,
     });
-    const parseFileBodyPipe = new ParseFileBodyPipe('testImage', {
-      fileIsRequired: false,
-      validators: [fileTypeValidator],
-    });
+    const parseFileBodyPipe = new ParseFileBodyPipe(
+      { bodyKey: 'testImage', type: 'FILE' },
+      {
+        fileIsRequired: false,
+        validators: [fileTypeValidator],
+      },
+    );
     it('should check wrong plain', async () => {
       expect(async () => {
         await parseFileBodyPipe.transform(wrongPlain);
@@ -88,7 +97,9 @@ describe('file-body decorator', () => {
       expect(firstMetadata.pipes).toHaveLength(2);
 
       const secondMetadata = metadata[Object.keys(metadata)[1]];
-      expect(secondMetadata.factory('testImage', ctx)).toEqual(correctPlain);
+      expect(
+        secondMetadata.factory({ bodyKey: 'testImage', type: 'FILE' }, ctx),
+      ).toEqual(correctPlain);
     });
   });
 });
