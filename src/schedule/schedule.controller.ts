@@ -12,7 +12,7 @@ import {
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
-import { ClubObject, PolicyService } from 'src/policy/policy.service';
+import { PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ScheduleService } from './schedule.service';
 import {
@@ -83,9 +83,6 @@ export class ScheduleController {
     const schedule = await this.scheduleService.getSchedule(scheduleId);
     if (schedule === null || schedule == undefined)
       throw new NotFoundException();
-    await this.policyService
-      .user(jwtPayload.userId)
-      .shouldBeAbleTo('Delete', new ClubObject(schedule.clubId));
     await this.scheduleService.removeSchedule(scheduleId);
   }
 }
