@@ -1,4 +1,3 @@
-import { PrismaService } from 'src/prisma/prisma.service';
 import { AdminAction, TrivialAction } from './policy.service';
 
 export class CreateClub extends TrivialAction {}

@@ -2,7 +2,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import {
   Action,
   isAuthorOfPost,
-  isPostPublic,
   isUserAdminOfClub,
   isUserAdminOfClubOfPost,
   isUserMemberOfClub,

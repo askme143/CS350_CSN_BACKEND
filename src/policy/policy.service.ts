@@ -66,20 +66,6 @@ export const isUserMemberOfClub = async (
   return membership !== null;
 };
 
-export const isPostPublic = async (
-  postId: string,
-  prismaService: PrismaService,
-) => {
-  const result = await prismaService.post.findFirst({
-    where: {
-      id: postId,
-      isPublic: true,
-      isDeleted: false,
-    },
-  });
-  return result !== null;
-};
-
 export const isAuthorOfPost = async (
   userId: string,
   postId: string,
