@@ -6,12 +6,10 @@ import {
   Param,
   Delete,
   Query,
-  UseInterceptors,
   HttpCode,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';

@@ -24,8 +24,8 @@ describe('file-body decorator', () => {
   class TestController {
     @Get()
     testFile(
-      @FileBody({
-        bodyKey: 'testImage',
+      @FileBody(TestDto, {
+        filePropertyKey: 'testImage',
         type: 'FILE',
       })
       _fileBody: TestDto,
@@ -35,8 +35,8 @@ describe('file-body decorator', () => {
 
     @Get()
     testFiles(
-      @FileBody({
-        bodyKey: 'testImages',
+      @FileBody(TestDto, {
+        filePropertyKey: 'testImages',
         type: 'FILES',
       })
       _fileBody: TestDto,
@@ -74,11 +74,11 @@ describe('file-body decorator', () => {
       fileType: /(jpg|jpeg|png|gif)$/,
     });
     const filePipe = new ParseFileBodyPipe(
-      { bodyKey: 'testImage', type: 'FILE' },
+      { filePropertyKey: 'testImage', type: 'FILE' },
       { fileIsRequired: false, validators: [fileTypeValidator] },
     );
     const filesPipe = new ParseFileBodyPipe(
-      { bodyKey: 'testImages', type: 'FILES' },
+      { filePropertyKey: 'testImages', type: 'FILES' },
       { fileIsRequired: false, validators: [fileTypeValidator] },
     );
 
@@ -124,7 +124,10 @@ describe('file-body decorator', () => {
 
       const secondMetadata = metadata[Object.keys(metadata)[1]];
       expect(
-        secondMetadata.factory({ bodyKey: 'testImage', type: 'FILE' }, ctx),
+        secondMetadata.factory(
+          { filePropertyKey: 'testImage', type: 'FILE' },
+          ctx,
+        ),
       ).toEqual(correctPlain);
     });
   });
@@ -153,7 +156,10 @@ describe('file-body decorator', () => {
 
     const secondMetadata = metadata[Object.keys(metadata)[1]];
     expect(
-      secondMetadata.factory({ bodyKey: 'testImages', type: 'FILES' }, ctx),
+      secondMetadata.factory(
+        { filePropertyKey: 'testImages', type: 'FILES' },
+        ctx,
+      ),
     ).toEqual(correctPlain);
   });
 });
