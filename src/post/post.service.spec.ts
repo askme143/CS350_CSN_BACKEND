@@ -5,7 +5,7 @@ import { mockDeep } from 'jest-mock-extended';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { GetClubPostListEnum } from './dto/get-club-post-list.dto';
+import { PostType } from './dto/get-club-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
 import { PostService } from './post.service';
 
@@ -55,13 +55,13 @@ describe('PostService', () => {
 
       let result = await postService.getClubPostList('userId', {
         clubId,
-        postType: GetClubPostListEnum.Announcement,
+        postType: PostType.Announcement,
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
 
       result = await postService.getClubPostList('userId', {
         clubId,
-        postType: GetClubPostListEnum.Ordinary,
+        postType: PostType.Ordinary,
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
 
@@ -72,7 +72,7 @@ describe('PostService', () => {
         .mockResolvedValue(mockMember);
       result = await postService.getClubPostList('userId', {
         clubId,
-        postType: GetClubPostListEnum.Announcement,
+        postType: PostType.Announcement,
         lastPostId: 'postId',
         lastCreatedAt: new Date(),
       });
