@@ -5,7 +5,7 @@ import { PolicyService } from '../policy/policy.service';
 import { ClubController } from './club.controller';
 import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
-import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
+import { GetClubListDto } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { ClubEntity } from './entities/club.entity';
 import { mockDeep } from 'jest-mock-extended';
@@ -70,34 +70,8 @@ describe('ClubController', () => {
       const result = ['club1', 'club2'];
       const starredClubId = 'club1';
       jest.spyOn(clubService, 'getClubIdList').mockResolvedValue(result);
-      jest.spyOn(clubService, 'getSubscribedClubId').mockResolvedValue(result);
-      jest.spyOn(clubService, 'getJoinedClubIdList').mockResolvedValue(result);
-      jest
-        .spyOn(clubService, 'getManagingClubIdList')
-        .mockResolvedValue(result);
-      jest
-        .spyOn(clubService, 'findStarredClubId')
-        .mockResolvedValue(starredClubId);
-
-      const types = [
-        GetClubListEnum.Search,
-        GetClubListEnum.Subscribed,
-        GetClubListEnum.Joined,
-        GetClubListEnum.Managing,
-      ];
-
-      for (const type of types) {
-        const getClubListDto = plainToClass(GetClubListDto, { type });
-        expect(
-          await clubController.getClubList(
-            { userId: '', username: '' },
-            getClubListDto,
-          ),
-        ).toEqual(result);
-      }
 
       const getClubListDto = plainToClass(GetClubListDto, {
-        type: GetClubListEnum.Search,
         limit: '1',
       });
       jest
@@ -110,20 +84,9 @@ describe('ClubController', () => {
         ),
       ).toEqual(result.slice(0, 1));
 
-      expect(
-        await clubController.getClubList(userJwtPayload, {
-          type: GetClubListEnum.Starred,
-        }),
-      ).toEqual([starredClubId]);
-    });
-
-    it('should return an empty array if user has no starred club,', async () => {
-      jest.spyOn(clubService, 'findStarredClubId').mockResolvedValue(null);
-      expect(
-        await clubController.getClubList(userJwtPayload, {
-          type: GetClubListEnum.Starred,
-        }),
-      ).toEqual([]);
+      expect(await clubController.getClubList(userJwtPayload, {})).toEqual([
+        starredClubId,
+      ]);
     });
   });
 
