@@ -144,19 +144,21 @@ model Schedule {
 }
 
 model Application {
-  applicantId String  @db.Uuid
-  clubId      String  @db.Uuid
-  isRejected  Boolean @default(false)
-  isAccepted  Boolean @default(false)
-  isDeleted   Boolean @default(false)
+  id          String            @id @default(uuid()) @db.Uuid
+  applicantId String            @db.Uuid
+  clubId      String            @db.Uuid
+  status      ApplicationStatus @default(PENDING)
 
-  createdAt  DateTime @default(now()) @db.Timestamp()
-  deletedAt  DateTime @db.Timestamp()
-  rejectedAt DateTime @db.Timestamp()
-  approvedAt DateTime @db.Timestamp()
+  createdAt DateTime @default(now()) @db.Timestamp()
+  updatedAt DateTime @default(now()) @db.Timestamp()
 
   applicant User @relation(fields: [applicantId], references: [id])
   club      Club @relation(fields: [clubId], references: [id])
+}
 
-  @@id([applicantId, clubId])
+enum ApplicationStatus {
+  ACCEPTED
+  REJECTED
+  CANCELED
+  PENDING
 }

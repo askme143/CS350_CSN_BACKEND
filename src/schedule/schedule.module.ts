@@ -4,11 +4,11 @@ import { StorageModule } from 'src/storage/storage.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ScheduleController } from './schedule.controller';
 import { ScheduleService } from './schedule.service';
-import { ClubService } from 'src/club/club.service';
+import { ClubModule } from 'src/club/club.module';
 
 @Module({
-  imports: [PolicyModule, StorageModule, PrismaModule],
+  imports: [PolicyModule, StorageModule, PrismaModule, ClubModule],
   controllers: [ScheduleController],
-  providers: [ScheduleService, ClubService],
+  providers: [ScheduleService],
 })
 export class ScheduleModule {}

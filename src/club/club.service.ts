@@ -7,6 +7,7 @@ import { StorageService } from 'src/storage/storage.service';
 import { ClubEntity } from './entities/club.entity';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
+import { ApplicationService } from 'src/application/application.service';
 
 export interface IGetClubListArg {
   lastClubName?: string;
@@ -16,6 +17,7 @@ export interface IGetClubListArg {
 @Injectable()
 export class ClubService {
   constructor(
+    private readonly applicationService: ApplicationService,
     private readonly prismaService: PrismaService,
     private readonly storageService: StorageService,
   ) {}
@@ -90,6 +92,7 @@ export class ClubService {
 
     return user?.starredClubId ?? null;
   }
+
   async getSubscribedClubId(userId: string) {
     const clubIdList = await this.prismaService.subscription.findMany({
       where: {
@@ -161,7 +164,7 @@ export class ClubService {
     clubId: string,
     updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
-    const image = updateClubDto.image;
+    const { image, ...data } = updateClubDto;
     const imageUrl = image
       ? await this.storageService.upload(
           this.getClubImagePath(image),
@@ -174,12 +177,13 @@ export class ClubService {
     const clubEntity = await this.prismaService.club.update({
       where: { id: clubId },
       data: {
-        clubname: updateClubDto.clubname,
-        description: updateClubDto.description,
-        canApply: updateClubDto.canApply,
+        ...data,
         imageUrl,
       },
     });
+
+    if (data.canApply === false)
+      await this.applicationService.rejectAllPendingApplications(clubId);
 
     return this.makeClubInfoDtoFromClubEntity(clubEntity);
   }

@@ -9,6 +9,8 @@ import {
   HttpCode,
   NotFoundException,
   ParseUUIDPipe,
+  Body,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
@@ -32,6 +34,9 @@ import {
   UpdateClub,
 } from 'src/policy/club-policy';
 import { CreateClubPost, ReadClubPost } from 'src/policy/post-policy';
+import { ApplicationService } from 'src/application/application.service';
+import { ApplicationStatusDto } from 'src/application/dto/application-status.dto';
+import { ApplicationEntity } from 'src/application/entities/application.entity';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -41,6 +46,7 @@ export class ClubController {
     private readonly policyService: PolicyService,
     private readonly clubService: ClubService,
     private readonly postService: PostService,
+    private readonly applicationService: ApplicationService,
   ) {}
 
   @Post()
@@ -171,5 +177,38 @@ export class ClubController {
       clubId,
       body,
     );
+  }
+
+  /**
+   * Get pending applications from users for the club
+   **/
+  @Get('clubs/:clubId/application')
+  async getPendingApplicationListForClub(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('clubId') clubId: string,
+  ): Promise<ApplicationEntity[]> {
+    // todo: Policy check
+    return await this.applicationService.getPendingApplicationListForClub(
+      clubId,
+    );
+  }
+
+  /**
+   * Decide to approve or reject the application
+   **/
+  @Patch('application/:applicationId')
+  async decideApplication(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('applicationId') applicationId: string,
+    @Body() { status }: ApplicationStatusDto,
+  ): Promise<ApplicationEntity> {
+    // todo: Policy check
+    const result = await this.applicationService.updateApplicationStatus(
+      applicationId,
+      status,
+    );
+
+    if (result === null) throw new ForbiddenException();
+    return result;
   }
 }

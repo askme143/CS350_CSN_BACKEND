@@ -4,7 +4,10 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "plugins": [
-      { "name": "@nestjs/swagger", "options": { "classValidatorShim": true } }
+      {
+        "name": "@nestjs/swagger",
+        "options": { "classValidatorShim": true, "introspectComments": true }
+      }
     ],
     "deleteOutDir": true
   }
