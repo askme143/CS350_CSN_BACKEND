@@ -38,4 +38,58 @@ export class UserService {
   async findUserById(id: string): Promise<UserEntity | null> {
     return await this.prismaService.user.findUnique({ where: { id } });
   }
+
+  async deleteUser(id: string): Promise<void> {
+    const deleteThingsUserWrote = {
+      updateMany: {
+        where: {
+          authorId: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      },
+    };
+    const deleteThingsRelatedToUser = {
+      updateMany: {
+        where: {
+          userId: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      },
+    };
+    await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isDeleted: true,
+        posts: deleteThingsUserWrote,
+        comments: deleteThingsUserWrote,
+        subscriptions: deleteThingsRelatedToUser,
+        memberships: deleteThingsRelatedToUser,
+        schedules: deleteThingsUserWrote,
+        likes: deleteThingsUserWrote,
+        applications: {
+          updateMany: {
+            where: {
+              applicantId: id,
+              status: 'PENDING',
+            },
+            data: {
+              status: 'CANCELED',
+            },
+          },
+        },
+        kakaoUser: {
+          update: {
+            isDeleted: true,
+          },
+        },
+        mySchedules: deleteThingsRelatedToUser,
+      },
+    });
+  }
 }
