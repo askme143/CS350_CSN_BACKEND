@@ -16,6 +16,7 @@ import { PostService } from 'src/post/post.service';
 import { PostInfoDto } from 'src/post/dto/post-info.dto';
 import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
 import { CreatePostDto } from 'src/post/dto/create-post.dto';
+import { ApplicationService } from 'src/application/application.service';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -34,6 +35,11 @@ describe('ClubController', () => {
     })
       .useMocker((token) => {
         switch (token) {
+          case ApplicationService: {
+            const mock = mockDeep<ApplicationService>();
+            mock.rejectAllPendingApplications.mockResolvedValue();
+            return mock;
+          }
           case PolicyService: {
             const mock = mockDeep<PolicyService>();
             mock.user.mockReturnValue({ shouldBeAbleTo: jest.fn() });

@@ -12,6 +12,7 @@ import {
   ScheduleType,
 } from './dto/schedule.dto';
 import _ from 'lodash';
+import { ApplicationService } from 'src/application/application.service';
 
 describe('ClubService', () => {
   let clubService: ClubService;
@@ -31,6 +32,11 @@ describe('ClubService', () => {
     })
       .useMocker((token) => {
         switch (token) {
+          case ApplicationService: {
+            const mock = mockDeep<ApplicationService>();
+            mock.rejectAllPendingApplications.mockResolvedValue();
+            return mock;
+          }
           case PrismaService: {
             const mock = mockDeep<PrismaService>();
             return mock;

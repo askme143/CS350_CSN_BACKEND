@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { Club, User, Subscription, Member } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import { mockDeep } from 'jest-mock-extended';
+import { ApplicationService } from 'src/application/application.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
 import { ClubService } from './club.service';
@@ -29,6 +30,11 @@ describe('ClubService', () => {
     })
       .useMocker((token) => {
         switch (token) {
+          case ApplicationService: {
+            const mock = mockDeep<ApplicationService>();
+            mock.rejectAllPendingApplications.mockResolvedValue();
+            return mock;
+          }
           case PrismaService: {
             const mock = mockDeep<PrismaService>();
             return mock;
