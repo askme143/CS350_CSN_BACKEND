@@ -1,8 +1,9 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
 import { mockDeep } from 'jest-mock-extended';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
+import { PolicyService } from 'src/policy/policy.service';
 import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -12,6 +13,7 @@ import { PostService } from './post.service';
 describe('PostController', () => {
   let postService: PostService;
   let postController: PostController;
+  let policyService: PolicyService;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -20,15 +22,32 @@ describe('PostController', () => {
       .useMocker((token) => {
         if (token === PostService) {
           return mockDeep<PostService>();
+        } else if (token === PolicyService) {
+          return mockDeep<PolicyService>();
         }
       })
       .compile();
 
     postService = moduleRef.get(PostService);
+    policyService = moduleRef.get(PolicyService);
     postController = moduleRef.get(PostController);
+
+    policyService.user = jest.fn().mockImplementation((_: any) => ({
+      shouldBeAbleTo: async (_: any) => {
+        //
+      },
+    }));
   });
 
   const jwtPayload = mockDeep<JwtPayloadEntity>();
+
+  function mockInvalidAccess(policyService: PolicyService) {
+    jest.spyOn(policyService, 'user').mockReturnValue({
+      shouldBeAbleTo: async (_: any) => {
+        throw new ForbiddenException();
+      },
+    });
+  }
 
   describe('getPublicPosts', () => {
     it('should call getPublicPostList of PostService', async () => {
@@ -55,7 +74,18 @@ describe('PostController', () => {
         expect(item).toBeInstanceOf(PostInfoDto);
       });
     });
+    it('should check a policy', async () => {
+      mockInvalidAccess(policyService);
+      expect(
+        async () =>
+          await postController.getPublicPosts(
+            jwtPayload,
+            mockDeep<GetPublicPostListDto>(),
+          ),
+      ).rejects.toThrowError(new ForbiddenException());
+    });
   });
+
   describe('getPost', () => {
     it('should call getPost of PostService', async () => {
       const getPostSpy = jest.spyOn(postService, 'getPost');
@@ -80,7 +110,14 @@ describe('PostController', () => {
         await postController.getPost(jwtPayload, 'postId');
       }).rejects.toThrowError(NotFoundException);
     });
+    it('should check a policy', async () => {
+      mockInvalidAccess(policyService);
+      expect(
+        async () => await postController.getPost(jwtPayload, 'postId'),
+      ).rejects.toThrowError(new ForbiddenException());
+    });
   });
+
   describe('updatePost', () => {
     it('should call updatePost of PostService', async () => {
       const updateSpy = jest.spyOn(postService, 'updatePost');
@@ -107,6 +144,17 @@ describe('PostController', () => {
 
       expect(result).toBeInstanceOf(PostInfoDto);
     });
+    it('should check a policy', async () => {
+      mockInvalidAccess(policyService);
+      expect(
+        async () =>
+          await postController.updatePost(
+            jwtPayload,
+            'postId',
+            mockDeep<UpdatePostDto>(),
+          ),
+      ).rejects.toThrowError(new ForbiddenException());
+    });
   });
   describe('deletePost', () => {
     it('should call deletePost of PostService', async () => {
@@ -114,6 +162,12 @@ describe('PostController', () => {
       await postController.deletePost(jwtPayload, 'postId');
 
       expect(deleteSpy).toBeCalledTimes(1);
+    });
+    it('should check a policy', async () => {
+      mockInvalidAccess(policyService);
+      expect(
+        async () => await postController.deletePost(jwtPayload, 'postId'),
+      ).rejects.toThrowError(new ForbiddenException());
     });
   });
 });
