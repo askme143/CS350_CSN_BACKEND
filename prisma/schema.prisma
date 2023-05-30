@@ -8,8 +8,9 @@ datasource db {
 }
 
 model KakaoUser {
-  kakaoId BigInt @id
-  userId  String @unique @db.Uuid
+  kakaoId   BigInt  @id
+  userId    String  @unique @db.Uuid
+  isDeleted Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -26,11 +27,12 @@ model User {
   comments      Comment[]
   subscriptions Subscription[]
   memberships   Member[]
-  mySchedules   Schedule[]
+  schedules     Schedule[]
   likes         Like[]
   starredClub   Club?          @relation(fields: [starredClubId], references: [id])
   applications  Application[]
   kakaoUser     KakaoUser?
+  mySchedules   MySchedule[]
 }
 
 model Club {
@@ -139,8 +141,22 @@ model Schedule {
   createdAt DateTime @default(now()) @db.Timestamp()
   isDeleted Boolean  @default(false)
 
-  club   Club @relation(fields: [clubId], references: [id])
-  author User @relation(fields: [authorId], references: [id])
+  club        Club         @relation(fields: [clubId], references: [id])
+  author      User         @relation(fields: [authorId], references: [id])
+  mySchedules MySchedule[]
+}
+
+model MySchedule {
+  userId     String @db.Uuid
+  scheduleId String @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  isDeleted Boolean  @default(false)
+
+  user     User     @relation(fields: [userId], references: [id])
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@id([userId, scheduleId])
 }
 
 model Application {

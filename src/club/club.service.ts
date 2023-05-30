@@ -82,6 +82,38 @@ export class ClubService {
     return club.id;
   }
 
+  async createSubscription(userId: string, clubId: string): Promise<void> {
+    await this.prismaService.subscription.upsert({
+      create: {
+        clubId,
+        userId,
+      },
+      update: {
+        isDeleted: false,
+      },
+      where: {
+        userId_clubId: {
+          clubId,
+          userId,
+        },
+      },
+    });
+  }
+
+  async deleteSubscription(userId: string, clubId: string): Promise<void> {
+    await this.prismaService.subscription.update({
+      where: {
+        userId_clubId: {
+          clubId,
+          userId,
+        },
+      },
+      data: {
+        isDeleted: true,
+      },
+    });
+  }
+
   async findStarredClubId(userId: string): Promise<string | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
