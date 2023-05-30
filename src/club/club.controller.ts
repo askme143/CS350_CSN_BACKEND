@@ -17,7 +17,7 @@ import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
-import { GetClubListDto, GetClubListEnum } from './dto/get-club-list.dto';
+import { GetClubListDto } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
@@ -69,30 +69,12 @@ export class ClubController {
     @Query() query: GetClubListDto,
   ): Promise<string[]> {
     const userId = jwtPayload.userId;
-
     await this.policyService.user(userId).shouldBeAbleTo(new ReadClub());
 
-    switch (query.type) {
-      case GetClubListEnum.Subscribed: {
-        return await this.clubService.getSubscribedClubId(userId);
-      }
-      case GetClubListEnum.Joined: {
-        return await this.clubService.getJoinedClubIdList(userId);
-      }
-      case GetClubListEnum.Managing: {
-        return await this.clubService.getManagingClubIdList(userId);
-      }
-      case GetClubListEnum.Starred: {
-        const starredClubId = await this.clubService.findStarredClubId(userId);
-        return starredClubId ? [starredClubId] : [];
-      }
-      case GetClubListEnum.Search: {
-        return await this.clubService.getClubIdList({
-          lastClubName: query.lastClubName,
-          limit: query.limit,
-        });
-      }
-    }
+    return await this.clubService.getClubIdList({
+      lastClubName: query.lastClubName,
+      limit: query.limit,
+    });
   }
 
   @Get(':clubId')
