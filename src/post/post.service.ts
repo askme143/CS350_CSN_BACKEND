@@ -22,11 +22,13 @@ export class PostService {
 
   async getClubPostList(
     userId: string,
+    clubId: string,
     args: GetClubPostListDto,
   ): Promise<PostInfoDto[]> {
-    const isMember = await this.isUserMemberOfClub(userId, args.clubId);
+    const isMember = await this.isUserMemberOfClub(userId, clubId);
     const query = this.queryBuilder.buildReadPostOfClubQuery(userId, {
       ...args,
+      clubId,
       isMember,
       limit: this.getResultLimit(args.limit),
     });
@@ -64,7 +66,7 @@ export class PostService {
     return result.length ? plainToInstance(PostInfoDto, result[0]) : null;
   }
 
-  async createClubPost(userId: string, args: CreatePostDto) {
+  async createClubPost(userId: string, clubId: string, args: CreatePostDto) {
     const { images, ...postArgs } = args;
     const imageUrls = await Promise.all(
       images.map((image) =>
@@ -80,6 +82,7 @@ export class PostService {
     const post = await this.prismaService.post.create({
       data: {
         ...postArgs,
+        clubId,
         authorId: userId,
         imageUrls,
       },
@@ -189,6 +192,38 @@ export class PostService {
     await this.prismaService.comment.update({
       where: {
         commentId,
+      },
+      data: {
+        isDeleted: true,
+      },
+    });
+  }
+
+  async like(authorId: string, postId: string): Promise<void> {
+    await this.prismaService.like.upsert({
+      create: {
+        authorId,
+        postId,
+      },
+      update: {
+        isDeleted: true,
+      },
+      where: {
+        authorId_postId: {
+          authorId,
+          postId,
+        },
+      },
+    });
+  }
+
+  async unlike(authorId: string, postId: string): Promise<void> {
+    await this.prismaService.like.update({
+      where: {
+        authorId_postId: {
+          authorId,
+          postId,
+        },
       },
       data: {
         isDeleted: true,

@@ -3,7 +3,6 @@ import { IsDefined } from 'class-validator';
 import { PostEntity } from '../entities/post.entity';
 
 export class CreatePostDto extends PickType(PostEntity, [
-  'clubId',
   'content',
   'isAnnouncement',
   'isPublic',

@@ -31,6 +31,7 @@ import {
   ReadClub,
   UpdateClub,
 } from 'src/policy/club-policy';
+import { CreateClubPost, ReadClubPost } from 'src/policy/post-policy';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -137,10 +138,16 @@ export class ClubController {
   @Get(':clubId/posts')
   async getClubPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
     @Query() queryParams: GetClubPostListDto,
   ): Promise<PostInfoDto[]> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadClubPost());
+
     return await this.postService.getClubPostList(
       jwtPayload.userId,
+      clubId,
       queryParams,
     );
   }
@@ -149,9 +156,20 @@ export class ClubController {
   @UseFile(CreatePostDto, 'images', 'FILES')
   async createClubPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
     @FileBody(CreatePostDto, { filePropertyKey: 'images', type: 'FILES' })
     body: CreatePostDto,
   ): Promise<PostInfoDto> {
-    return await this.postService.createClubPost(jwtPayload.userId, body);
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(
+        new CreateClubPost(clubId, body.isPublic ? 'PUBLIC' : 'INTERNAL'),
+      );
+
+    return await this.postService.createClubPost(
+      jwtPayload.userId,
+      clubId,
+      body,
+    );
   }
 }

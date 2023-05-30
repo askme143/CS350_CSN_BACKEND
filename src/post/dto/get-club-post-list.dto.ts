@@ -8,9 +8,6 @@ export enum PostType {
 }
 
 export class GetClubPostListDto extends PostPaginationDto {
-  @IsUUID()
-  clubId: string;
-
   @IsEnum(PostType)
   postType: PostType;
 
