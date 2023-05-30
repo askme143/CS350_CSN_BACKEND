@@ -106,3 +106,45 @@ export const isUserAdminOfClubOfPost = async (
 
   return result !== null;
 };
+
+export const isAuthorOfComment = async (
+  userId: string,
+  commentId: string,
+  prismaService: PrismaService,
+): Promise<boolean> => {
+  const result = await prismaService.comment.findFirst({
+    where: {
+      commentId,
+      authorId: userId,
+      isDeleted: false,
+    },
+  });
+
+  return result !== null;
+};
+
+export const isUserAdminOfClubOfPostOfComment = async (
+  userId: string,
+  commentId: string,
+  prismaService: PrismaService,
+): Promise<boolean> => {
+  const result = await prismaService.comment.findFirst({
+    where: {
+      commentId,
+      isDeleted: false,
+      post: {
+        club: {
+          memberships: {
+            some: {
+              userId,
+              isAdmin: true,
+              isDeleted: false,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return result !== null;
+};

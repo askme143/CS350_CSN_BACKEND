@@ -102,14 +102,12 @@ describe('PostService', () => {
         .spyOn(postService as any, 'isUserMemberOfClub')
         .mockResolvedValue(false);
 
-      let result = await postService.getClubPostList('userId', {
-        clubId,
+      let result = await postService.getClubPostList('userId', clubId, {
         postType: PostType.Announcement,
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
 
-      result = await postService.getClubPostList('userId', {
-        clubId,
+      result = await postService.getClubPostList('userId', clubId, {
         postType: PostType.Ordinary,
       });
       result.forEach((item) => expect(item).toBeInstanceOf(PostInfoDto));
@@ -118,8 +116,7 @@ describe('PostService', () => {
       jest
         .spyOn(postService as any, 'isUserMemberOfClub')
         .mockResolvedValue(true);
-      result = await postService.getClubPostList('userId', {
-        clubId,
+      result = await postService.getClubPostList('userId', clubId, {
         postType: PostType.Announcement,
         lastPostId: 'postId',
         lastCreatedAt: new Date(),
@@ -171,7 +168,11 @@ describe('PostService', () => {
       jest.spyOn(storageService, 'upload').mockResolvedValue('url');
       jest.spyOn(prismaService.post, 'create').mockResolvedValue(post);
 
-      const result = await postService.createClubPost('userId', createPostDto);
+      const result = await postService.createClubPost(
+        'userId',
+        'clubId',
+        createPostDto,
+      );
 
       expect(result).toBeInstanceOf(PostInfoDto);
     });

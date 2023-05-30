@@ -197,6 +197,7 @@ describe('ClubController', () => {
 
       const result = await clubController.getClubPosts(
         userJwtPayload,
+        'clubId',
         mockDeep<GetClubPostListDto>(),
       );
 
@@ -211,6 +212,7 @@ describe('ClubController', () => {
       expect(
         await clubController.createClubPost(
           userJwtPayload,
+          'clubId',
           mockDeep<CreatePostDto>(),
         ),
       ).toBeInstanceOf(PostInfoDto);
