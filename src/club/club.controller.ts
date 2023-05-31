@@ -50,10 +50,9 @@ export class ClubController {
   ) {}
 
   @Post()
-  @UseFile(CreateClubDto, 'image', 'FILE')
   async createClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody(CreateClubDto, { filePropertyKey: 'image', type: 'FILE' })
+    @Body()
     createClubDto: CreateClubDto,
   ): Promise<string> {
     await this.policyService
@@ -96,11 +95,10 @@ export class ClubController {
   }
 
   @Patch(':clubId')
-  @UseFile(UpdateClubDto, 'image', 'FILE')
   async updateClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-    @FileBody(UpdateClubDto, { filePropertyKey: 'image', type: 'FILE' })
+    @Body()
     updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
     await this.policyService
@@ -141,11 +139,10 @@ export class ClubController {
   }
 
   @Post(':clubId/posts')
-  @UseFile(CreatePostDto, 'images', 'FILES')
   async createClubPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-    @FileBody(CreatePostDto, { filePropertyKey: 'images', type: 'FILES' })
+    @Body()
     body: CreatePostDto,
   ): Promise<PostInfoDto> {
     await this.policyService

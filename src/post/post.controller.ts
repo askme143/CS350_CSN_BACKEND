@@ -15,8 +15,6 @@ import {
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
-import { FileBody } from 'src/custom-decorator/file-body.decorator';
-import { UseFile } from 'src/custom-decorator/use-file.decorator';
 import { PolicyService } from 'src/policy/policy.service';
 import {
   CommentToPost,
@@ -79,11 +77,10 @@ export class PostController {
   }
 
   @Patch(':postId')
-  @UseFile(UpdatePostDto, 'images', 'FILES')
   async updatePost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('postId', ParseUUIDPipe) postId: string,
-    @FileBody(UpdatePostDto, { filePropertyKey: 'images', type: 'FILES' })
+    @Body()
     body: UpdatePostDto,
   ) {
     await this.policyService

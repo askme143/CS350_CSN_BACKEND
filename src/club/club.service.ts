@@ -19,15 +19,10 @@ export class ClubService {
   constructor(
     private readonly applicationService: ApplicationService,
     private readonly prismaService: PrismaService,
-    private readonly storageService: StorageService,
   ) {}
 
   private getResultLimit(limit?: number): number {
     return limit && limit > 0 && limit <= 30 ? limit : 30;
-  }
-
-  private getClubImagePath(image: Express.Multer.File): string {
-    return 'club/' + Date.now() + '-' + image.originalname;
   }
 
   private async makeClubInfoDtoFromClubEntity(
@@ -57,18 +52,8 @@ export class ClubService {
     userId: string,
     createClubDto: CreateClubDto,
   ): Promise<string> {
-    const image = createClubDto.image;
-    const imageUrl = await this.storageService.upload(
-      this.getClubImagePath(image),
-      image.buffer,
-      [],
-      image.mimetype,
-    );
-
     const clubCreate: Prisma.ClubCreateInput = {
-      imageUrl,
-      clubname: createClubDto.clubname,
-      description: createClubDto.description,
+      ...createClubDto,
       canApply: false,
       memberships: {
         create: {
@@ -196,25 +181,14 @@ export class ClubService {
     clubId: string,
     updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
-    const { image, ...data } = updateClubDto;
-    const imageUrl = image
-      ? await this.storageService.upload(
-          this.getClubImagePath(image),
-          image.buffer,
-          [],
-          image.mimetype,
-        )
-      : undefined;
-
     const clubEntity = await this.prismaService.club.update({
       where: { id: clubId },
       data: {
-        ...data,
-        imageUrl,
+        ...updateClubDto,
       },
     });
 
-    if (data.canApply === false)
+    if (updateClubDto.canApply === false)
       await this.applicationService.rejectAllPendingApplications(clubId);
 
     return this.makeClubInfoDtoFromClubEntity(clubEntity);
