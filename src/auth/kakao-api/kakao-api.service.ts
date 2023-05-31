@@ -8,32 +8,7 @@ import { KakaoUserInfoEntity } from './entities/kakao-user-info.entity';
 export class KakaoApiService {
   constructor(private httpService: HttpService) {}
 
-  private async requestKakaoAccessToken(authCode: string): Promise<string> {
-    const options = {
-      method: 'POST',
-      url: 'https://kauth.kakao.com/oauth/token',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data: {
-        grant_type: 'authorization_code',
-        client_id: '88c8f10f0ffa1e6a133b6b7f83dc3b78',
-        redirect_uri: 'http://localhost:3000/auth/kakao',
-        code: authCode,
-      },
-    };
-
-    const accessToken = await firstValueFrom(
-      this.httpService
-        .request(options)
-        .pipe(map((response) => response.data?.['access_token'])),
-    );
-    if (accessToken === undefined) throw new UnauthorizedException();
-
-    return accessToken;
-  }
-
-  private async requestKakaoUserInfo(
+  async requestKakaoUserInfo(
     accessToken: string,
   ): Promise<KakaoUserInfoEntity> {
     const options = {
@@ -61,8 +36,28 @@ export class KakaoApiService {
     return plainToClass(KakaoUserInfoEntity, { kakaoId, nickname });
   }
 
-  async getKakaoUserInfo(authCode: string): Promise<KakaoUserInfoEntity> {
-    const accessToken = await this.requestKakaoAccessToken(authCode);
-    return this.requestKakaoUserInfo(accessToken);
+  async requestKakaoAccessToken(authCode: string): Promise<string> {
+    const options = {
+      method: 'POST',
+      url: 'https://kauth.kakao.com/oauth/token',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: {
+        grant_type: 'authorization_code',
+        client_id: '88c8f10f0ffa1e6a133b6b7f83dc3b78',
+        redirect_uri: 'http://localhost:3000/auth/kakao',
+        code: authCode,
+      },
+    };
+
+    const accessToken = await firstValueFrom(
+      this.httpService
+        .request(options)
+        .pipe(map((response) => response.data?.['access_token'])),
+    );
+    if (accessToken === undefined) throw new UnauthorizedException();
+
+    return accessToken;
   }
 }

@@ -70,7 +70,7 @@ describe('AuthService', () => {
   describe('issueTokenKakao', () => {
     it('should return jwt token entity', async () => {
       jest
-        .spyOn(kakaoApiService, 'getKakaoUserInfo')
+        .spyOn(kakaoApiService, 'requestKakaoUserInfo')
         .mockResolvedValue({ kakaoId: 0, nickname: 'nickname' });
 
       const user = mockDeep<UserEntity>();
@@ -81,7 +81,9 @@ describe('AuthService', () => {
         .spyOn(userService, 'findOrCreateUserByKakaoId')
         .mockResolvedValue(user);
 
-      const tokenEntity = await authService.issueTokenKakao('authCode');
+      const tokenEntity = await authService.issueTokenKakaoWithAuthCode(
+        'authCode',
+      );
 
       expect(tokenEntity.accessToken).toBeDefined();
       expect(tokenEntity.refreshToken).toBeDefined();

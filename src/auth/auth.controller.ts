@@ -27,10 +27,32 @@ export class AuthController {
     });
   }
 
-  @Get('kakao')
-  async loginKakao(@Query() { code }: LoginKakaoDto): Promise<JwtTokenEntity> {
+  /**
+   * Sign in or sign up a user. Used by a web application
+   * Receives a kakao authCode from client.
+   * This may be called by a redirection made by kakao server.
+   */
+  @Get('kakao/rest')
+  async loginKakaoRest(
+    @Query() { code }: LoginKakaoDto,
+  ): Promise<JwtTokenEntity> {
     try {
-      return await this.authService.issueTokenKakao(code);
+      return await this.authService.issueTokenKakaoWithAuthCode(code);
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+
+  /**
+   * Sign in or sign up a user. Used by a native application
+   * Receives a kakao authToken from client
+   */
+  @Get('kakao/native')
+  async loginKakaoNative(
+    @Query() { code }: LoginKakaoDto,
+  ): Promise<JwtTokenEntity> {
+    try {
+      return await this.authService.issueTokenWithKakaoAuthToken(code);
     } catch {
       throw new UnauthorizedException();
     }

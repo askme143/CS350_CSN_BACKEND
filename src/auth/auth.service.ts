@@ -28,10 +28,18 @@ export class AuthService {
     return new JwtTokenEntity(accessToken, refreshToken);
   }
 
-  async issueTokenKakao(authCode: string): Promise<JwtTokenEntity> {
-    const { kakaoId, nickname } = await this.kakaoApiService.getKakaoUserInfo(
+  async issueTokenKakaoWithAuthCode(authCode: string): Promise<JwtTokenEntity> {
+    const authToken = await this.kakaoApiService.requestKakaoAccessToken(
       authCode,
     );
+    return await this.issueTokenWithKakaoAuthToken(authToken);
+  }
+
+  async issueTokenWithKakaoAuthToken(
+    authToken: string,
+  ): Promise<JwtTokenEntity> {
+    const { kakaoId, nickname } =
+      await this.kakaoApiService.requestKakaoUserInfo(authToken);
     const { username, id } = await this.userService.findOrCreateUserByKakaoId(
       kakaoId,
       nickname,

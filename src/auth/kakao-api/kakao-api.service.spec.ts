@@ -100,15 +100,4 @@ describe('KakaoApiService', () => {
       ).rejects.toThrow(new UnauthorizedException());
     });
   });
-
-  describe('getKakaoUserInfo', () => {
-    it('should return kakao user info', async () => {
-      expect(
-        await requestMockHttpService(
-          () => kakaoApiService.getKakaoUserInfo('authCode'),
-          [validTokenResponse, validUserInfoResponse],
-        ),
-      ).toEqual(kakaoUserInfo);
-    });
-  });
 });
