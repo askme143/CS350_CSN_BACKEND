@@ -1,5 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { Schedule } from '@prisma/client';
+import { MySchedule, Schedule } from '@prisma/client';
 import { Exclude, Type } from 'class-transformer';
 import {
   IsArray,
@@ -41,6 +41,23 @@ export class ScheduleEntity implements Schedule {
   @IsBoolean()
   @Type(() => Boolean)
   isPublic: boolean;
+
+  @IsDate()
+  @Type(() => Date)
+  createdAt: Date;
+
+  @IsBoolean()
+  @Exclude()
+  @ApiHideProperty()
+  isDeleted: boolean;
+}
+
+export class MyScheduleEntity implements MySchedule {
+  @IsUUID()
+  userId: string;
+
+  @IsUUID()
+  scheduleId: string;
 
   @IsDate()
   @Type(() => Date)

@@ -1,5 +1,5 @@
 import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
-import { ScheduleEntity } from '../entities/schedule.entity';
+import { MyScheduleEntity, ScheduleEntity } from '../entities/schedule.entity';
 import { IsDefined, IsEnum, IsInt } from 'class-validator';
 
 export enum ScheduleType {
@@ -31,3 +31,8 @@ export class ScheduleGetDto {
   @IsInt()
   month: number;
 }
+
+export class MyScheduleDto extends OmitType(MyScheduleEntity, ['isDeleted']) {}
+export class MyScheduleCreateDto extends PickType(MyScheduleEntity, [
+  'scheduleId',
+]) {}

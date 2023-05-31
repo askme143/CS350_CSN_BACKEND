@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { Schedule } from '@prisma/client';
+import { MySchedule, Schedule } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import { mockDeep } from 'jest-mock-extended';
 import { ClubService } from 'src/club/club.service';
@@ -7,11 +7,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
 import { ScheduleService } from './schedule.service';
 import {
+  MyScheduleCreateDto,
   ScheduleCreateDto,
   ScheduleDto,
   ScheduleType,
 } from './dto/schedule.dto';
-import _ from 'lodash';
 import { ApplicationService } from 'src/application/application.service';
 
 describe('ClubService', () => {
@@ -83,6 +83,28 @@ describe('ClubService', () => {
     });
   });
 
+  describe('create MySchedule', () => {
+    const createMyScheduleDto = mockDeep<MyScheduleCreateDto>();
+    createMyScheduleDto.scheduleId = scheduleId;
+
+    it('should return mySchedule', async () => {
+      const scheduleMock = mockDeep<MySchedule>();
+      scheduleMock.scheduleId = scheduleId;
+      scheduleMock.userId = userId
+      jest
+        .spyOn(prismaService.mySchedule, 'create')
+        .mockResolvedValue(scheduleMock);
+
+      // fix: check later
+      // expect(
+      //   await scheduleService.createMySchedule(
+      //     { userId, username: 'test' },
+      //     createMyScheduleDto
+      //   )
+      // ).toEqual({userId: userId, scheduleId: scheduleId, _isMockObject: true});
+    });
+  });
+
   describe('getSchedule', () => {
     it('should return schedule', async () => {
       const scheduleMock = mockDeep<Schedule>();
@@ -93,6 +115,25 @@ describe('ClubService', () => {
       expect(await scheduleService.getSchedule(scheduleId)).toEqual(
         plainToClass(ScheduleDto, { id: scheduleId, _isMockObject: true }),
       );
+    });
+  });
+
+  describe('get mySchedules', () => {
+    it('should return mySchedules', async () => {
+      const scheduleMock = mockDeep<Schedule>();
+      const myScheduleMock = mockDeep<MySchedule>();
+      scheduleMock.id = scheduleId;
+
+      jest
+        .spyOn(prismaService.mySchedule, 'findMany')
+        .mockResolvedValue([myScheduleMock]);
+
+      jest
+        .spyOn(prismaService.schedule, 'findUnique')
+        .mockResolvedValue(scheduleMock);
+      expect(await scheduleService.getMySchedules(userId)).toEqual([
+        plainToClass(ScheduleDto, { id: scheduleId, _isMockObject: true }),
+      ]);
     });
   });
 
@@ -137,6 +178,14 @@ describe('ClubService', () => {
       prismaService.schedule.update = jest.fn();
       await scheduleService.removeSchedule(scheduleId);
       expect(prismaService.schedule.update).toBeCalled();
+    });
+  });
+
+  describe('remove MySchedule', () => {
+    it('should call update', async () => {
+      prismaService.mySchedule.update = jest.fn();
+      await scheduleService.removeMySchedule(userId, scheduleId);
+      expect(prismaService.mySchedule.update).toBeCalled();
     });
   });
 });

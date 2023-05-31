@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, Schedule } from '@prisma/client';
+import { MySchedule, Prisma, Schedule } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import {
+  MyScheduleCreateDto,
   ScheduleCreateDto,
   ScheduleDto,
   ScheduleGetDto,
@@ -121,5 +122,59 @@ export class ScheduleService {
       data: scheduleCreate,
     });
     return schedule.id;
+  }
+
+  async createMySchedule(
+    jwtPayload: JwtPayloadEntity,
+    createScheduleDto: MyScheduleCreateDto,
+  ): Promise<MySchedule> {
+    const scheduleCreate: Prisma.MyScheduleCreateInput = {
+      user: {
+        connect: {
+          id: jwtPayload.userId,
+        },
+      },
+      schedule: {
+        connect: {
+          id: createScheduleDto.scheduleId,
+        },
+      },
+      isDeleted: false,
+    };
+
+    const result = await this.prismaService.mySchedule.create({
+      data: scheduleCreate,
+    });
+    return result;
+  }
+
+  async getMySchedules(userId: string): Promise<ScheduleDto[]> {
+    const mySchedules = await this.prismaService.mySchedule.findMany({
+      where: { userId },
+    });
+
+    const schedules = await Promise.all(
+      _.map(mySchedules, async (mySchedule) => {
+        const schedule = this.prismaService.schedule.findUnique({
+          where: { id: mySchedule.scheduleId },
+        });
+        return plainToClass(ScheduleDto, schedule);
+      }),
+    );
+    return _.compact(schedules);
+  }
+
+  async removeMySchedule(userId: string, scheduleId: string) {
+    await this.prismaService.mySchedule.update({
+      data: {
+        isDeleted: true,
+      },
+      where: {
+        userId_scheduleId: {
+          userId: userId,
+          scheduleId: scheduleId,
+        },
+      },
+    });
   }
 }

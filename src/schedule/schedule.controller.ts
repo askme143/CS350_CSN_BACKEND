@@ -8,6 +8,7 @@ import {
   HttpCode,
   NotFoundException,
   ParseUUIDPipe,
+  Body,
 } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
@@ -16,11 +17,14 @@ import { PolicyService } from 'src/policy/policy.service';
 import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ScheduleService } from './schedule.service';
 import {
+  MyScheduleCreateDto,
+  MyScheduleDto,
   ScheduleCreateDto,
   ScheduleDto,
   ScheduleGetDto,
 } from './dto/schedule.dto';
 import { UseFile } from 'src/custom-decorator/use-file.decorator';
+import { plainToClass } from 'class-transformer';
 
 @ApiSecurity('Authentication')
 @Controller('schedules')
@@ -42,6 +46,25 @@ export class ScheduleController {
       jwtPayload,
       createScheduleDto,
     );
+  }
+
+  @Post('/user')
+  async createMySchedule(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Body() createScheduleDto: MyScheduleCreateDto,
+  ): Promise<MyScheduleDto> {
+    const mySchedule = await this.scheduleService.createMySchedule(
+      jwtPayload,
+      createScheduleDto,
+    );
+    return plainToClass(MyScheduleDto, mySchedule);
+  }
+
+  @Get('/user')
+  async getMySchedules(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+  ): Promise<ScheduleDto[]> {
+    return await this.scheduleService.getMySchedules(jwtPayload.userId);
   }
 
   @Get('')
@@ -72,6 +95,15 @@ export class ScheduleController {
     } else {
       return result;
     }
+  }
+
+  @Delete('/user/:scheduleId')
+  @HttpCode(204)
+  async removeMySchedule(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('scheduleId', ParseUUIDPipe) scheduleId: string,
+  ): Promise<void> {
+    await this.scheduleService.removeMySchedule(jwtPayload.userId, scheduleId);
   }
 
   @Delete(':scheduleId')
