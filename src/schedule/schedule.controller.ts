@@ -23,7 +23,6 @@ import {
   ScheduleDto,
   ScheduleGetDto,
 } from './dto/schedule.dto';
-import { UseFile } from 'src/custom-decorator/use-file.decorator';
 import { plainToClass } from 'class-transformer';
 
 @ApiSecurity('Authentication')
@@ -36,10 +35,9 @@ export class ScheduleController {
   ) {}
 
   @Post()
-  @UseFile(ScheduleCreateDto, 'images', 'FILES')
   async createSchedule(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @FileBody(ScheduleCreateDto, { filePropertyKey: 'images', type: 'FILES' })
+    @Body()
     createScheduleDto: ScheduleCreateDto,
   ): Promise<string> {
     return await this.scheduleService.createSchedule(

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StorageService } from 'src/storage/storage.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetClubPostListDto } from './dto/get-club-post-list.dto';
@@ -17,7 +16,6 @@ export class PostService {
   constructor(
     private readonly queryBuilder: PostQueryBuilder,
     private readonly prismaService: PrismaService,
-    private readonly storageService: StorageService,
   ) {}
 
   async getClubPostList(
@@ -67,24 +65,11 @@ export class PostService {
   }
 
   async createClubPost(userId: string, clubId: string, args: CreatePostDto) {
-    const { images, ...postArgs } = args;
-    const imageUrls = await Promise.all(
-      images.map((image) =>
-        this.storageService.upload(
-          this.getPostImagePath(image),
-          image.buffer,
-          [{}],
-          image.mimetype,
-        ),
-      ),
-    );
-
     const post = await this.prismaService.post.create({
       data: {
-        ...postArgs,
+        ...args,
         clubId,
         authorId: userId,
-        imageUrls,
       },
     });
     const postInfo: PostInfoDto = {
@@ -97,25 +82,10 @@ export class PostService {
   }
 
   async updatePost(userId: string, postId: string, args: UpdatePostDto) {
-    const { images, ...postArgs } = args;
-    const imageUrls = images
-      ? await Promise.all(
-          images.map((image) =>
-            this.storageService.upload(
-              this.getPostImagePath(image),
-              image.buffer,
-              [{}],
-              image.mimetype,
-            ),
-          ),
-        )
-      : undefined;
-
     await this.prismaService.post.update({
       where: { id: postId },
       data: {
-        imageUrls,
-        ...postArgs,
+        ...args,
       },
     });
 

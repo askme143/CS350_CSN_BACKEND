@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { MySchedule, Prisma, Schedule } from '@prisma/client';
+import { MySchedule, Schedule } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import {
   MyScheduleCreateDto,
@@ -9,7 +9,6 @@ import {
   ScheduleGetDto,
   ScheduleType,
 } from './dto/schedule.dto';
-import { StorageService } from 'src/storage/storage.service';
 import * as _ from 'lodash';
 import { ClubService } from 'src/club/club.service';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
@@ -18,13 +17,8 @@ import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 export class ScheduleService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly storageService: StorageService,
     private readonly clubService: ClubService,
   ) {}
-
-  private getClubImagePath(image: Express.Multer.File): string {
-    return 'club/' + Date.now() + '-' + image.originalname;
-  }
 
   async getSchedules(
     userId: string,
@@ -80,70 +74,24 @@ export class ScheduleService {
     jwtPayload: JwtPayloadEntity,
     createScheduleDto: ScheduleCreateDto,
   ): Promise<string> {
-    const images = createScheduleDto.images;
-
     const joinnedClubIds = await this.clubService.getJoinedClubIdList(
       jwtPayload.userId,
     );
     if (!joinnedClubIds.includes(createScheduleDto.clubId))
       throw new UnauthorizedException('user is not a member of given club');
 
-    const imageUrls = await Promise.all(
-      _.map(images, (image) =>
-        this.storageService.upload(
-          this.getClubImagePath(image),
-          image.buffer,
-          [],
-          image.mimetype,
-        ),
-      ),
-    );
-
-    const scheduleCreate: Prisma.ScheduleCreateInput = {
-      imageUrls,
-      name: createScheduleDto.name,
-      description: createScheduleDto.description,
-      startDttm: new Date(createScheduleDto.startDttm),
-      endDttm: new Date(createScheduleDto.endDttm),
-      isPublic: createScheduleDto.isPublic,
-      club: {
-        connect: {
-          id: createScheduleDto.clubId,
-        },
-      },
-      author: {
-        connect: {
-          id: createScheduleDto.authorId,
-        },
-      },
-    };
-
     const schedule = await this.prismaService.schedule.create({
-      data: scheduleCreate,
+      data: createScheduleDto,
     });
     return schedule.id;
   }
 
   async createMySchedule(
     jwtPayload: JwtPayloadEntity,
-    createScheduleDto: MyScheduleCreateDto,
+    createMyScheduleDto: MyScheduleCreateDto,
   ): Promise<MySchedule> {
-    const scheduleCreate: Prisma.MyScheduleCreateInput = {
-      user: {
-        connect: {
-          id: jwtPayload.userId,
-        },
-      },
-      schedule: {
-        connect: {
-          id: createScheduleDto.scheduleId,
-        },
-      },
-      isDeleted: false,
-    };
-
     const result = await this.prismaService.mySchedule.create({
-      data: scheduleCreate,
+      data: { ...createMyScheduleDto, userId: jwtPayload.userId },
     });
     return result;
   }

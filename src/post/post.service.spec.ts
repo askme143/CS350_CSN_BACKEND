@@ -14,7 +14,6 @@ import { PostService } from './post.service';
 describe('PostService', () => {
   let postService: PostService;
   let prismaService: PrismaService;
-  let storageService: StorageService;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -34,7 +33,6 @@ describe('PostService', () => {
 
     postService = moduleRef.get(PostService);
     prismaService = moduleRef.get(PrismaService);
-    storageService = moduleRef.get(StorageService);
   });
 
   describe('getResultLimit', () => {
@@ -163,9 +161,7 @@ describe('PostService', () => {
       const image = mockDeep<Express.Multer.File>();
       image.originalname = 'image';
       const createPostDto = mockDeep<CreatePostDto>();
-      createPostDto.images = [image];
 
-      jest.spyOn(storageService, 'upload').mockResolvedValue('url');
       jest.spyOn(prismaService.post, 'create').mockResolvedValue(post);
 
       const result = await postService.createClubPost(
@@ -184,9 +180,7 @@ describe('PostService', () => {
       const image = mockDeep<Express.Multer.File>();
       image.originalname = 'image';
       const updatePostDto = mockDeep<UpdatePostDto>();
-      updatePostDto.images = [image];
 
-      jest.spyOn(storageService, 'upload').mockResolvedValue('url');
       jest.spyOn(prismaService.post, 'update').mockResolvedValue(post);
       jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([post]);
 
@@ -201,7 +195,6 @@ describe('PostService', () => {
     it('should return PostInfoDto (without images)', async () => {
       const post = mockDeep<Post>();
       const updatePostDto = mockDeep<UpdatePostDto>();
-      updatePostDto.images = undefined;
 
       jest.spyOn(prismaService.post, 'update').mockResolvedValue(post);
       jest.spyOn(prismaService, '$queryRaw').mockResolvedValue([post]);

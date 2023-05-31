@@ -4,7 +4,6 @@ import { plainToClass } from 'class-transformer';
 import { mockDeep } from 'jest-mock-extended';
 import { ApplicationService } from 'src/application/application.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StorageService } from 'src/storage/storage.service';
 import { ClubService } from './club.service';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { CreateClubDto } from './dto/create-club.dto';
@@ -13,16 +12,13 @@ import { ClubEntity } from './entities/club.entity';
 describe('ClubService', () => {
   let clubService: ClubService;
   let prismaService: PrismaService;
-  let storageService: StorageService;
 
   const userId = 'userId';
   const clubId = 'clubId';
   const clubname = 'clubname';
   const description = 'description';
   const canApply = false;
-  const originalname = 'originalname';
-  const imagePathPattern = (originalPath: string) =>
-    new RegExp('club/\\d{13}-' + originalPath);
+  const imageUrl = 'url';
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -39,18 +35,12 @@ describe('ClubService', () => {
             const mock = mockDeep<PrismaService>();
             return mock;
           }
-          case StorageService: {
-            const mock = mockDeep<StorageService>();
-            mock.upload.mockImplementation(async (path: string) => path);
-            return mock;
-          }
         }
       })
       .compile();
 
     clubService = moduleRef.get(ClubService);
     prismaService = moduleRef.get(PrismaService);
-    storageService = moduleRef.get(StorageService);
   });
 
   describe('private helpers', () => {
@@ -61,15 +51,6 @@ describe('ClubService', () => {
         expect(clubService['getResultLimit'](undefined)).toEqual(30);
         expect(clubService['getResultLimit'](10)).toEqual(10);
         expect(clubService['getResultLimit'](10000)).toEqual(30);
-      });
-    });
-    describe('getClubImagePath', () => {
-      it('should return proper image path', () => {
-        const image = mockDeep<Express.Multer.File>();
-        image.originalname = originalname;
-        expect(clubService['getClubImagePath'](image)).toMatch(
-          imagePathPattern(originalname),
-        );
       });
     });
     describe('makeClubInfoDtoFromClubEntity', () => {
@@ -108,7 +89,7 @@ describe('ClubService', () => {
     createClubDto.canApply = canApply;
     createClubDto.clubname = clubname;
     createClubDto.description = description;
-    createClubDto.image.path = originalname;
+    createClubDto.imageUrl = imageUrl;
 
     it('should return club id', async () => {
       const clubMock = mockDeep<Club>();
@@ -294,22 +275,6 @@ describe('ClubService', () => {
         .mockResolvedValue(clubInfoDto);
 
       expect(await clubService.updateClub(clubId, {})).toEqual(clubInfoDto);
-    });
-    it('should call image upload if image is provided', async () => {
-      const clubEntity = mockDeep<ClubEntity>();
-      const clubInfoDto = mockDeep<ClubInfoDto>();
-
-      storageService.upload = jest.fn();
-      jest.spyOn(prismaService.club, 'update').mockResolvedValue(clubEntity);
-      clubService['makeClubInfoDtoFromClubEntity'] = jest
-        .fn()
-        .mockResolvedValue(clubInfoDto);
-
-      await clubService.updateClub(clubId, {
-        image: mockDeep<Express.Multer.File>(),
-      });
-
-      expect(storageService.upload).toBeCalled();
     });
   });
 
