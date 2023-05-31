@@ -33,19 +33,21 @@ describe('AuthController', () => {
       expect(await authController.getTestToken()).toEqual(jwtTokenEntity);
     });
   });
-  describe('loginKakao', () => {
+  describe('loginKakaoRest', () => {
     it('should return jwt token entity', async () => {
       jest
-        .spyOn(authService, 'issueTokenKakao')
+        .spyOn(authService, 'issueTokenKakaoWithAuthCode')
         .mockResolvedValue(jwtTokenEntity);
-      expect(await authController.loginKakao({ code: 'code' })).toEqual(
+      expect(await authController.loginKakaoRest({ code: 'code' })).toEqual(
         jwtTokenEntity,
       );
     });
     it('should throw unauthorized exception for invalid code', async () => {
-      jest.spyOn(authService, 'issueTokenKakao').mockRejectedValue(new Error());
+      jest
+        .spyOn(authService, 'issueTokenKakaoWithAuthCode')
+        .mockRejectedValue(new Error());
       expect(
-        async () => await authController.loginKakao({ code: 'code' }),
+        async () => await authController.loginKakaoRest({ code: 'code' }),
       ).rejects.toThrow(new UnauthorizedException());
     });
   });
