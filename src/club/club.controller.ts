@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   Body,
   ForbiddenException,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
@@ -189,5 +190,37 @@ export class ClubController {
 
     if (result === null) throw new ForbiddenException();
     return result;
+  }
+
+  /// Club Settings
+
+  @Get(':clubId/members')
+  async getMembers(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
+  ): Promise<string[]> {
+    // todo: policy
+    return await this.clubService.getMemberIdList(clubId);
+  }
+
+  @Patch(':clubId/members/:userId')
+  async updateUserPrivilege(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
+    @Body('adminPrivilege', ParseBoolPipe) adminPrivilege: boolean,
+  ) {
+    // todo: policy check
+    await this.clubService.updateUserPrivilege(userId, clubId, adminPrivilege);
+  }
+
+  @Patch(':clubId/members/:userId')
+  async kickMember(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
+  ) {
+    // todo: policy check
+    await this.clubService.kickMember(userId, clubId);
   }
 }
