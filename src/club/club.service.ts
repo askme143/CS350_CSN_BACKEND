@@ -221,4 +221,48 @@ export class ClubService {
       },
     });
   }
+
+  /// Member
+
+  async getMemberIdList(clubId: string): Promise<string[]> {
+    const result = await this.prismaService.member.findMany({
+      where: {
+        clubId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return result.map((item) => item.userId);
+  }
+
+  async updateUserPrivilege(
+    userId: string,
+    clubId: string,
+    adminPrivilege: boolean,
+  ) {
+    await this.prismaService.member.update({
+      where: {
+        userId_clubId: {
+          userId,
+          clubId,
+        },
+      },
+      data: {
+        isAdmin: adminPrivilege,
+      },
+    });
+  }
+
+  async kickMember(userId: string, clubId: string) {
+    await this.prismaService.member.delete({
+      where: {
+        userId_clubId: {
+          userId,
+          clubId,
+        },
+      },
+    });
+  }
 }
