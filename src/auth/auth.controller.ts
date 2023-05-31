@@ -28,7 +28,7 @@ export class AuthController {
   }
 
   /**
-   * Sign in or sign up a user. Used by a web application
+   * Sign in or sign up a user. Used by a web application.
    * Receives a kakao authCode from client.
    * This may be called by a redirection made by kakao server.
    */
@@ -44,8 +44,8 @@ export class AuthController {
   }
 
   /**
-   * Sign in or sign up a user. Used by a native application
-   * Receives a kakao authToken from client
+   * Sign in or sign up a user. Used by a native application.
+   * Receives a kakao authToken from client.
    */
   @Get('kakao/native')
   async loginKakaoNative(
