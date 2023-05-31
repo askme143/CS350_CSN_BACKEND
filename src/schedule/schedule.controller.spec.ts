@@ -7,11 +7,13 @@ import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
 import { ScheduleController } from './schedule.controller';
 import { ScheduleService } from './schedule.service';
 import {
+  MyScheduleCreateDto,
   ScheduleCreateDto,
   ScheduleDto,
   ScheduleType,
 } from './dto/schedule.dto';
 import { Dictionary } from 'lodash';
+import { plainToClass } from 'class-transformer';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -68,6 +70,31 @@ describe('ScheduleController', () => {
     });
   });
 
+  describe('getMySchedules', () => {
+    it('should return mySchedules', async () => {
+      const tmpTime = new Date();
+      const result = [
+        plainToClass(ScheduleDto, {
+          userId: 'userId',
+          schedueId: 'scheduleId1',
+          isDeleted: false,
+          createdAt: tmpTime,
+        }),
+        plainToClass(ScheduleDto, {
+          userId: 'userId',
+          schedueId: 'scheduleId1',
+          isDeleted: false,
+          createdAt: tmpTime,
+        }),
+      ];
+
+      jest.spyOn(scheduleService, 'getMySchedules').mockResolvedValue(result);
+      expect(await scheduleController.getMySchedules(userJwtPayload)).toEqual(
+        result,
+      );
+    });
+  });
+
   describe('getSchedule', () => {
     it('should return schedule Info', async () => {
       const scheduleId = 'scheduleId';
@@ -101,6 +128,26 @@ describe('ScheduleController', () => {
           new ScheduleCreateDto(),
         ),
       ).toEqual(scheduleId);
+    });
+  });
+
+  describe('create mySchedule', () => {
+    it('should return string schedule id', async () => {
+      const scheduleId = 'scheduleId';
+      const userId = 'userId';
+      const tmpTime = new Date();
+      jest.spyOn(scheduleService, 'createMySchedule').mockResolvedValue({
+        userId,
+        scheduleId,
+        isDeleted: false,
+        createdAt: tmpTime,
+      });
+      expect(
+        await scheduleController.createMySchedule(
+          userJwtPayload,
+          new MyScheduleCreateDto(),
+        ),
+      ).toEqual({ userId, scheduleId, isDeleted: false, createdAt: tmpTime });
     });
   });
 
@@ -144,6 +191,24 @@ describe('ScheduleController', () => {
       await expect(async () => {
         await scheduleController.removeSchedule(userJwtPayload, scheduleId);
       }).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('remove mySchedule', () => {
+    it('should call removeSchedule of ScheduleService', async () => {
+      const scheduleId = 'scheduleId';
+      const mockDelete = jest
+        .fn()
+        .mockImplementation(async (_scheduleId: string) => {
+          return;
+        });
+      jest
+        .spyOn(scheduleService, 'removeMySchedule')
+        .mockImplementation(mockDelete);
+      expect(
+        await scheduleController.removeMySchedule(userJwtPayload, scheduleId),
+      );
+      expect(mockDelete).toBeCalled();
     });
   });
 });
