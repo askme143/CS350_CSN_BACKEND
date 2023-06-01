@@ -19,6 +19,14 @@ import { ApplicationEntity } from 'src/application/entities/application.entity';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { ClubService } from 'src/club/club.service';
+import { PolicyService } from 'src/policy/policy.service';
+import {
+  Apply,
+  DeleteAccount,
+  ReadUserInfo,
+  SubscribeOrUnsubscribe,
+  UpdateUserInfo,
+} from 'src/policy/user-policy';
 import { UserService } from './user.service';
 
 @ApiSecurity('Authentication')
@@ -26,6 +34,7 @@ import { UserService } from './user.service';
 @Controller('/user')
 export class UserController {
   constructor(
+    private readonly policyService: PolicyService,
     private readonly applicationService: ApplicationService,
     private readonly clubService: ClubService,
     private readonly userService: UserService,
@@ -33,8 +42,11 @@ export class UserController {
 
   @Delete()
   async deleteAccount(@JwtPayload() jwtPayload: JwtPayloadEntity) {
-    //todo : policy
-    this.userService.deleteUser(jwtPayload.userId);
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new DeleteAccount(jwtPayload.userId));
+
+    await this.userService.deleteUser(jwtPayload.userId);
   }
 
   /**
@@ -46,7 +58,10 @@ export class UserController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Query('onlyManaging', ParseBoolPipe) onlyManaging: boolean,
   ): Promise<string[]> {
-    //todo : policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
+
     return onlyManaging
       ? await this.clubService.getManagingClubIdList(jwtPayload.userId)
       : await this.clubService.getJoinedClubIdList(jwtPayload.userId);
@@ -59,7 +74,10 @@ export class UserController {
   async getStarredClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
   ): Promise<string> {
-    //todo : policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
+
     const result = await this.clubService.findStarredClubId(jwtPayload.userId);
 
     if (result === null) throw new NotFoundException();
@@ -73,7 +91,10 @@ export class UserController {
   async getSubscriptions(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
   ): Promise<string[]> {
-    //todo : policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
+
     return await this.clubService.getSubscribedClubId(jwtPayload.userId);
   }
 
@@ -86,7 +107,10 @@ export class UserController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Body('clubId', ParseUUIDPipe) clubId: string,
   ): Promise<void> {
-    //todo : policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new SubscribeOrUnsubscribe(clubId, 'SUBSCRIBE'));
+
     await this.clubService.createSubscription(jwtPayload.userId, clubId);
   }
 
@@ -99,7 +123,10 @@ export class UserController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Body('clubId', ParseUUIDPipe) clubId: string,
   ): Promise<void> {
-    //todo : policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new SubscribeOrUnsubscribe(clubId, 'UNSUBSCRIBE'));
+
     await this.clubService.createSubscription(jwtPayload.userId, clubId);
   }
 
@@ -111,7 +138,10 @@ export class UserController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Body() { clubId }: CreateApplicationDto,
   ): Promise<ApplicationEntity> {
-    // todo: check policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new Apply(clubId));
+
     const result = await this.applicationService.createApplication(
       jwtPayload.userId,
       clubId,
@@ -126,7 +156,10 @@ export class UserController {
    */
   @Get('applications')
   async getApplicationListOfUser(@JwtPayload() jwtPayload: JwtPayloadEntity) {
-    // todo: check policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
+
     return await this.applicationService.getApplicationListOfUser(
       jwtPayload.userId,
     );
@@ -140,7 +173,10 @@ export class UserController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('applicationId') applicationId: string,
   ): Promise<ApplicationEntity> {
-    // todo: check policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new UpdateUserInfo(jwtPayload.userId));
+
     const result = await this.applicationService.updateApplicationStatus(
       applicationId,
       'CANCELED',
