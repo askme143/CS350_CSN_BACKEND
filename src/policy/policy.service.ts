@@ -25,6 +25,15 @@ export class TrivialAction implements Action {
     return true;
   }
 }
+export class SelfAction implements Action {
+  constructor(private readonly userId: string) {}
+  can(
+    userId: string,
+    _prismaService: PrismaService,
+  ): boolean | Promise<boolean> {
+    return userId === this.userId;
+  }
+}
 export class AdminAction implements Action {
   constructor(private readonly clubId: string) {}
 

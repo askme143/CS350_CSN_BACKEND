@@ -30,9 +30,14 @@ import { PostInfoDto } from 'src/post/dto/post-info.dto';
 import { UseFile } from 'src/custom-decorator/use-file.decorator';
 import {
   CreateClub,
+  DecideApplication,
   DeleteClub,
+  KickMember,
+  ReadApplication,
   ReadClub,
+  ReadMemberInfo,
   UpdateClub,
+  UpdateMemberPrivilege,
 } from 'src/policy/club-policy';
 import { CreateClubPost, ReadClubPost } from 'src/policy/post-policy';
 import { ApplicationService } from 'src/application/application.service';
@@ -122,6 +127,8 @@ export class ClubController {
     await this.clubService.removeClub(clubId);
   }
 
+  /// Posts
+
   @Get(':clubId/posts')
   async getClubPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -159,15 +166,20 @@ export class ClubController {
     );
   }
 
+  /// Applications
+
   /**
    * Get pending applications from users for the club
    **/
-  @Get('clubs/:clubId/application')
+  @Get(':clubId/application')
   async getPendingApplicationListForClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId') clubId: string,
   ): Promise<ApplicationEntity[]> {
-    // todo: Policy check
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadApplication(clubId));
+
     return await this.applicationService.getPendingApplicationListForClub(
       clubId,
     );
@@ -176,13 +188,17 @@ export class ClubController {
   /**
    * Decide to approve or reject the application
    **/
-  @Patch('application/:applicationId')
+  @Patch(':clubId/application/:applicationId')
   async decideApplication(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Param('applicationId') applicationId: string,
+    @Param('applicationId', ParseUUIDPipe) applicationId: string,
+    @Param('clubId', ParseUUIDPipe) clubId: string,
     @Body() { status }: ApplicationStatusDto,
   ): Promise<ApplicationEntity> {
-    // todo: Policy check
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new DecideApplication(clubId));
+
     const result = await this.applicationService.updateApplicationStatus(
       applicationId,
       status,
@@ -199,7 +215,10 @@ export class ClubController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
   ): Promise<string[]> {
-    // todo: policy
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadMemberInfo(clubId));
+
     return await this.clubService.getMemberIdList(clubId);
   }
 
@@ -210,17 +229,23 @@ export class ClubController {
     @Param('clubId', ParseUUIDPipe) clubId: string,
     @Body('adminPrivilege', ParseBoolPipe) adminPrivilege: boolean,
   ) {
-    // todo: policy check
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new UpdateMemberPrivilege(clubId));
+
     await this.clubService.updateUserPrivilege(userId, clubId, adminPrivilege);
   }
 
-  @Patch(':clubId/members/:userId')
+  @Delete(':clubId/members/:userId')
   async kickMember(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Param('clubId', ParseUUIDPipe) clubId: string,
   ) {
-    // todo: policy check
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new KickMember(clubId));
+
     await this.clubService.kickMember(userId, clubId);
   }
 }
