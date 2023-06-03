@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CommentInfoDto } from './dto/comment-info.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetClubPostListDto } from './dto/get-club-post-list.dto';
@@ -8,7 +9,6 @@ import { GetPublicPostListDto } from './dto/get-public-post-list.dto';
 import { PostInfoDto } from './dto/post-info.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { CommentEntity } from './entities/comment.entity';
 import { PostQueryBuilder } from './post-query-builder';
 
 @Injectable()
@@ -65,15 +65,29 @@ export class PostService {
   }
 
   async createClubPost(userId: string, clubId: string, args: CreatePostDto) {
-    const post = await this.prismaService.post.create({
+    const postWithUsername = await this.prismaService.post.create({
       data: {
         ...args,
         clubId,
         authorId: userId,
       },
+      include: {
+        author: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
+
+    const {
+      author: { username: authorname },
+      ...post
+    } = postWithUsername;
+
     const postInfo: PostInfoDto = {
       ...post,
+      authorname,
       likeCount: 0,
       liked: false,
       commentCount: 0,
@@ -123,39 +137,84 @@ export class PostService {
     authorId: string,
     postId: string,
     { content }: CreateCommentDto,
-  ): Promise<CommentEntity> {
-    const result = await this.prismaService.comment.create({
+  ): Promise<CommentInfoDto> {
+    const {
+      user: { username: authorname },
+      ...result
+    } = await this.prismaService.comment.create({
       data: {
         authorId,
         postId,
         content,
       },
+      include: {
+        user: {
+          select: { username: true },
+        },
+      },
     });
 
-    return plainToInstance(CommentEntity, result);
+    const commentInfoDto: CommentInfoDto = {
+      ...result,
+      authorname,
+    };
+
+    return plainToInstance(CommentInfoDto, commentInfoDto);
   }
 
-  async getComments(postId: string): Promise<CommentEntity[]> {
+  async getComments(postId: string): Promise<CommentInfoDto[]> {
     const result = await this.prismaService.comment.findMany({
       where: {
         postId,
         isDeleted: false,
       },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'asc',
       },
     });
-    return plainToInstance(CommentEntity, result);
+
+    const commentInfoDtoList = result.map(
+      ({ user: { username: authorname }, ...item }) => ({
+        ...item,
+        authorname,
+      }),
+    );
+
+    return plainToInstance(CommentInfoDto, commentInfoDtoList);
   }
 
   async updateComment(
     commentId: string,
     args: UpdateCommentDto,
-  ): Promise<CommentEntity> {
-    return await this.prismaService.comment.update({
+  ): Promise<CommentInfoDto> {
+    const {
+      user: { username: authorname },
+      ...comment
+    } = await this.prismaService.comment.update({
       where: { commentId },
       data: { ...args },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
+
+    const infoDto: CommentInfoDto = {
+      ...comment,
+      authorname,
+    };
+
+    return plainToInstance(CommentInfoDto, infoDto);
   }
 
   async deleteComment(commentId: string): Promise<void> {

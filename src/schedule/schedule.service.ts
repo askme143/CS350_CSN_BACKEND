@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MySchedule, Schedule } from '@prisma/client';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import {
   MyScheduleCreateDto,
   ScheduleCreateDto,
@@ -37,11 +37,27 @@ export class ScheduleService {
         return this.prismaService.schedule
           .findMany({
             where: { clubId: clubId, isDeleted: false },
+            include: {
+              author: {
+                select: {
+                  username: true,
+                },
+              },
+            },
           })
           .then((results) =>
             _.filter(
               results,
               (schedule) => schedule.startDttm.getMonth() + 1 == month,
+            ),
+          )
+          .then((results) =>
+            _.map(
+              results,
+              ({ author: { username: authorname }, ...schedule }) => ({
+                ...schedule,
+                authorname,
+              }),
             ),
           );
       }),
@@ -63,11 +79,22 @@ export class ScheduleService {
   }
 
   async getSchedule(scheduleId: string): Promise<ScheduleDto | null> {
-    const schedule = await this.prismaService.schedule.findUnique({
+    const result = await this.prismaService.schedule.findUnique({
       where: { id: scheduleId },
+      include: { author: { select: { username: true } } },
     });
-    if (schedule === null) return null;
-    return plainToClass(ScheduleDto, { ...schedule });
+
+    if (result === null) return null;
+
+    const {
+      author: { username: authorname },
+      ...schedule
+    } = result;
+
+    return plainToInstance(ScheduleDto, {
+      ...schedule,
+      authorname,
+    });
   }
 
   async createSchedule(
@@ -99,14 +126,30 @@ export class ScheduleService {
   async getMySchedules(userId: string): Promise<ScheduleDto[]> {
     const mySchedules = await this.prismaService.mySchedule.findMany({
       where: { userId },
+      include: {
+        schedule: {
+          include: {
+            author: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     const schedules = await Promise.all(
-      _.map(mySchedules, async (mySchedule) => {
-        const schedule = this.prismaService.schedule.findUnique({
-          where: { id: mySchedule.scheduleId },
+      _.map(mySchedules, (mySchedule) => {
+        const {
+          author: { username: authorname },
+          ...schedule
+        } = mySchedule.schedule;
+
+        return plainToClass(ScheduleDto, {
+          ...schedule,
+          authorname,
         });
-        return plainToClass(ScheduleDto, schedule);
       }),
     );
     return _.compact(schedules);

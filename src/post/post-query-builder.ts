@@ -121,6 +121,7 @@ export class PostQueryBuilder {
       SELECT * FROM (
         SELECT Distinct on(p.id)
           p.*,
+          u."username" as authorname,
           count(l."authorId")
             OVER (Partition By p.id)
             As "likeCount",
@@ -135,6 +136,8 @@ export class PostQueryBuilder {
           ON l."postId" = p.id AND l."isDeleted" = false
         Left Join service."Comment" as c
           ON c."postId" = p.id AND c."isDeleted" = false
+        Left Join service."User" as u
+	        ON u.id = p."authorId" AND u."isDeleted" = false
         WHERE 
           Not p."isDeleted"
           ${template.postIdCondition}

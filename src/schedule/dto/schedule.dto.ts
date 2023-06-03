@@ -1,13 +1,17 @@
 import { OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { MyScheduleEntity, ScheduleEntity } from '../entities/schedule.entity';
-import { IsEnum, IsInt } from 'class-validator';
+import { IsEnum, IsInt, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export enum ScheduleType {
   JOINED = 'JOINED',
   SUBSCRIBED = 'SUBSCRIBED',
 }
 
-export class ScheduleDto extends OmitType(ScheduleEntity, ['isDeleted']) {}
+export class ScheduleDto extends OmitType(ScheduleEntity, ['isDeleted']) {
+  @IsString()
+  authorname: string;
+}
 
 export class ScheduleCreateDto extends PickType(ScheduleEntity, [
   'clubId',
@@ -26,6 +30,7 @@ export class ScheduleGetDto {
   type: ScheduleType;
 
   @IsInt()
+  @Type(() => Number)
   month: number;
 }
 
