@@ -98,7 +98,10 @@ export class ClubController {
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new ReadClub());
 
-    const result = await this.clubService.findClubInfo(clubId);
+    const result = await this.clubService.findClubInfo(
+      jwtPayload.userId,
+      clubId,
+    );
 
     if (result === null) {
       throw new NotFoundException();
@@ -121,7 +124,11 @@ export class ClubController {
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new UpdateClub(clubId));
 
-    return await this.clubService.updateClub(clubId, updateClubDto);
+    return await this.clubService.updateClub(
+      jwtPayload.userId,
+      clubId,
+      updateClubDto,
+    );
   }
 
   /**

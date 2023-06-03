@@ -64,19 +64,21 @@ describe('ClubService', () => {
           createdAt: new Date(),
           isDeleted: false,
         };
-        const adminId = 'adminId';
         const memberCount = 1;
         prismaService.member.count = jest.fn().mockResolvedValue(memberCount);
-        prismaService.member.findMany = jest
+        prismaService.member.findFirst = jest
           .fn()
-          .mockResolvedValue([{ userId: adminId }]);
+          .mockResolvedValue(mockDeep<Member>());
 
         expect(
-          await clubService['makeClubInfoDtoFromClubEntity'](clubEntity),
+          await clubService['makeClubInfoDtoFromClubEntity'](
+            'userId',
+            clubEntity,
+          ),
         ).toEqual(
           plainToClass(ClubInfoDto, {
             ...clubEntity,
-            adminIds: [adminId],
+            isAdmin: true,
             memberCount,
           }),
         );
@@ -249,7 +251,7 @@ describe('ClubService', () => {
 
       it('should return null if no club exists', async () => {
         jest.spyOn(prismaService.club, 'findUnique').mockResolvedValue(null);
-        expect(await clubService.findClubInfo(clubId)).toBeNull();
+        expect(await clubService.findClubInfo(userId, clubId)).toBeNull();
       });
       it('should return club info dto', async () => {
         jest
@@ -259,7 +261,9 @@ describe('ClubService', () => {
           .fn()
           .mockResolvedValue(clubInfoDto);
 
-        expect(await clubService.findClubInfo(clubId)).toEqual(clubInfoDto);
+        expect(await clubService.findClubInfo(userId, clubId)).toEqual(
+          clubInfoDto,
+        );
       });
     });
   });
@@ -274,7 +278,9 @@ describe('ClubService', () => {
         .fn()
         .mockResolvedValue(clubInfoDto);
 
-      expect(await clubService.updateClub(clubId, {})).toEqual(clubInfoDto);
+      expect(await clubService.updateClub(userId, clubId, {})).toEqual(
+        clubInfoDto,
+      );
     });
   });
 
