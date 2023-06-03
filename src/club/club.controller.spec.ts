@@ -128,7 +128,11 @@ describe('ClubController', () => {
       jest
         .spyOn(clubService, 'updateClub')
         .mockImplementation(
-          async (_clubId: string, _updateClubDto: UpdateClubDto) => {
+          async (
+            _userId: string,
+            _clubId: string,
+            _updateClubDto: UpdateClubDto,
+          ) => {
             return clubInfoDto;
           },
         );

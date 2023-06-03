@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { Prisma } from '@prisma/client';
 import { CreateClubDto } from './dto/create-club.dto';
-import { StorageService } from 'src/storage/storage.service';
 import { ClubEntity } from './entities/club.entity';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
@@ -26,26 +25,24 @@ export class ClubService {
   }
 
   private async makeClubInfoDtoFromClubEntity(
+    userId: string,
     clubEntity: ClubEntity,
   ): Promise<ClubInfoDto> {
     const clubId = clubEntity.id;
     const memberCount = await this.prismaService.member.count({
       where: { clubId, isDeleted: false },
     });
-    const adminIds = (
-      await this.prismaService.member.findMany({
+    const isAdmin =
+      (await this.prismaService.member.findFirst({
         where: {
+          userId,
           clubId,
           isAdmin: true,
           isDeleted: false,
         },
-        select: {
-          userId: true,
-        },
-      })
-    ).map(({ userId }) => userId);
+      })) !== null;
 
-    return plainToClass(ClubInfoDto, { ...clubEntity, adminIds, memberCount });
+    return plainToClass(ClubInfoDto, { ...clubEntity, isAdmin, memberCount });
   }
 
   async createClub(
@@ -167,17 +164,21 @@ export class ClubService {
     return clubList.map((club) => club.id);
   }
 
-  async findClubInfo(clubId: string): Promise<ClubInfoDto | null> {
+  async findClubInfo(
+    userId: string,
+    clubId: string,
+  ): Promise<ClubInfoDto | null> {
     const clubEntity: ClubEntity | null =
       await this.prismaService.club.findUnique({
         where: { id: clubId },
       });
 
     if (clubEntity === null) return null;
-    return this.makeClubInfoDtoFromClubEntity(clubEntity);
+    return this.makeClubInfoDtoFromClubEntity(userId, clubEntity);
   }
 
   async updateClub(
+    userId: string,
     clubId: string,
     updateClubDto: UpdateClubDto,
   ): Promise<ClubInfoDto> {
@@ -191,7 +192,7 @@ export class ClubService {
     if (updateClubDto.canApply === false)
       await this.applicationService.rejectAllPendingApplications(clubId);
 
-    return this.makeClubInfoDtoFromClubEntity(clubEntity);
+    return this.makeClubInfoDtoFromClubEntity(userId, clubEntity);
   }
 
   async removeClub(clubId: string): Promise<void> {
