@@ -67,7 +67,7 @@ export class ScheduleController {
   }
 
   /**
-   * Get schedules
+   * Get schedule
    */
   @Get(':scheduleId')
   async getSchedule(

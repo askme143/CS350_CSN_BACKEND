@@ -90,7 +90,7 @@ describe('ClubService', () => {
     it('should return mySchedule', async () => {
       const scheduleMock = mockDeep<MySchedule>();
       scheduleMock.scheduleId = scheduleId;
-      scheduleMock.userId = userId
+      scheduleMock.userId = userId;
       jest
         .spyOn(prismaService.mySchedule, 'create')
         .mockResolvedValue(scheduleMock);
@@ -112,28 +112,27 @@ describe('ClubService', () => {
       jest
         .spyOn(prismaService.schedule, 'findUnique')
         .mockResolvedValue(scheduleMock);
-      expect(await scheduleService.getSchedule(scheduleId)).toEqual(
-        plainToClass(ScheduleDto, { id: scheduleId, _isMockObject: true }),
-      );
+      const result = await scheduleService.getSchedule(scheduleId);
+
+      expect(result).toEqual(expect.objectContaining({ id: scheduleId }));
+      expect(result).toBeInstanceOf(ScheduleDto);
     });
   });
 
   describe('get mySchedules', () => {
     it('should return mySchedules', async () => {
-      const scheduleMock = mockDeep<Schedule>();
-      const myScheduleMock = mockDeep<MySchedule>();
-      scheduleMock.id = scheduleId;
+      const myScheduleMock = mockDeep<MySchedule & { schedule: Schedule }>();
+      myScheduleMock.schedule.id = scheduleId;
 
       jest
         .spyOn(prismaService.mySchedule, 'findMany')
         .mockResolvedValue([myScheduleMock]);
 
-      jest
-        .spyOn(prismaService.schedule, 'findUnique')
-        .mockResolvedValue(scheduleMock);
-      expect(await scheduleService.getMySchedules(userId)).toEqual([
-        plainToClass(ScheduleDto, { id: scheduleId, _isMockObject: true }),
-      ]);
+      const result = await scheduleService.getMySchedules(userId);
+
+      expect(result[0].id).toEqual(scheduleId);
+      expect(result[0]).toBeInstanceOf(ScheduleDto);
+      expect(result.length).toEqual(1);
     });
   });
 
