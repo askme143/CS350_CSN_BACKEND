@@ -14,7 +14,6 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
 import { JwtPayloadEntity } from 'src/auth/entities/jwt-payload.entity';
 import { PolicyService } from 'src/policy/policy.service';
-import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ScheduleService } from './schedule.service';
 import {
   MyScheduleCreateDto,
@@ -46,25 +45,6 @@ export class ScheduleController {
     );
   }
 
-  @Post('/user')
-  async createMySchedule(
-    @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Body() createScheduleDto: MyScheduleCreateDto,
-  ): Promise<MyScheduleDto> {
-    const mySchedule = await this.scheduleService.createMySchedule(
-      jwtPayload,
-      createScheduleDto,
-    );
-    return plainToClass(MyScheduleDto, mySchedule);
-  }
-
-  @Get('/user')
-  async getMySchedules(
-    @JwtPayload() jwtPayload: JwtPayloadEntity,
-  ): Promise<ScheduleDto[]> {
-    return await this.scheduleService.getMySchedules(jwtPayload.userId);
-  }
-
   @Get('')
   async getSchedules(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -93,15 +73,6 @@ export class ScheduleController {
     } else {
       return result;
     }
-  }
-
-  @Delete('/user/:scheduleId')
-  @HttpCode(204)
-  async removeMySchedule(
-    @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Param('scheduleId', ParseUUIDPipe) scheduleId: string,
-  ): Promise<void> {
-    await this.scheduleService.removeMySchedule(jwtPayload.userId, scheduleId);
   }
 
   @Delete(':scheduleId')

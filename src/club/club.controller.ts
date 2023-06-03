@@ -21,13 +21,11 @@ import { CreateClubDto } from './dto/create-club.dto';
 import { GetClubListDto } from './dto/get-club-list.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 import { PolicyService } from 'src/policy/policy.service';
-import { FileBody } from 'src/custom-decorator/file-body.decorator';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { PostService } from 'src/post/post.service';
 import { GetClubPostListDto } from 'src/post/dto/get-club-post-list.dto';
 import { CreatePostDto } from 'src/post/dto/create-post.dto';
 import { PostInfoDto } from 'src/post/dto/post-info.dto';
-import { UseFile } from 'src/custom-decorator/use-file.decorator';
 import {
   CreateClub,
   DecideApplication,
@@ -55,6 +53,9 @@ export class ClubController {
     private readonly applicationService: ApplicationService,
   ) {}
 
+  /**
+   * Create a club.
+   */
   @Post()
   async createClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -68,6 +69,9 @@ export class ClubController {
     return await this.clubService.createClub(jwtPayload.userId, createClubDto);
   }
 
+  /**
+   * Get club list. The result is sorted by alphabetical order.
+   */
   @Get()
   async getClubList(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -82,6 +86,9 @@ export class ClubController {
     });
   }
 
+  /**
+   * Get club detail.
+   */
   @Get(':clubId')
   async getClubInfo(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -100,6 +107,9 @@ export class ClubController {
     }
   }
 
+  /**
+   * Update club detail.
+   */
   @Patch(':clubId')
   async updateClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -114,6 +124,9 @@ export class ClubController {
     return await this.clubService.updateClub(clubId, updateClubDto);
   }
 
+  /**
+   * Delete a club. Admin privilege is required.
+   */
   @Delete(':clubId')
   @HttpCode(204)
   async removeClub(
@@ -129,6 +142,11 @@ export class ClubController {
 
   /// Posts
 
+  /**
+   * Get posts of club. The content of the response is depending on the class of requester.
+   */
+  @ApiTags('posts')
+  @ApiTags('club-posts')
   @Get(':clubId/posts')
   async getClubPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -146,6 +164,11 @@ export class ClubController {
     );
   }
 
+  /**
+   * Create a post on a club.
+   */
+  @ApiTags('posts')
+  @ApiTags('club-posts')
   @Post(':clubId/posts')
   async createClubPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -171,6 +194,7 @@ export class ClubController {
   /**
    * Get pending applications from users for the club
    **/
+  @ApiTags('applications')
   @Get(':clubId/application')
   async getPendingApplicationListForClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -188,6 +212,7 @@ export class ClubController {
   /**
    * Decide to approve or reject the application
    **/
+  @ApiTags('applications')
   @Patch(':clubId/application/:applicationId')
   async decideApplication(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -210,6 +235,10 @@ export class ClubController {
 
   /// Club Settings
 
+  /**
+   * Get member list of the club. Admin privilege is required.
+   */
+  @ApiTags('club-management')
   @Get(':clubId/members')
   async getMembers(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -222,6 +251,10 @@ export class ClubController {
     return await this.clubService.getMemberIdList(clubId);
   }
 
+  /**
+   * Update a class of a user. Admin privilege is required.
+   */
+  @ApiTags('club-management')
   @Patch(':clubId/members/:userId')
   async updateUserPrivilege(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -236,6 +269,10 @@ export class ClubController {
     await this.clubService.updateUserPrivilege(userId, clubId, adminPrivilege);
   }
 
+  /**
+   * Kick a user from a club. Admin privilege is required.
+   */
+  @ApiTags('club-management')
   @Delete(':clubId/members/:userId')
   async kickMember(
     @JwtPayload() jwtPayload: JwtPayloadEntity,

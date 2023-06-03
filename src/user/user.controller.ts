@@ -13,6 +13,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { plainToClass } from 'class-transformer';
 import { ApplicationService } from 'src/application/application.service';
 import { CreateApplicationDto } from 'src/application/dto/create-application.dto';
 import { ApplicationEntity } from 'src/application/entities/application.entity';
@@ -27,6 +28,13 @@ import {
   SubscribeOrUnsubscribe,
   UpdateUserInfo,
 } from 'src/policy/user-policy';
+import {
+  MyScheduleCreateDto,
+  MyScheduleDto,
+  ScheduleDto,
+} from 'src/schedule/dto/schedule.dto';
+import { ScheduleService } from 'src/schedule/schedule.service';
+import { SubscribeDto } from './dto/subscribe.dto';
 import { UserService } from './user.service';
 
 @ApiSecurity('Authentication')
@@ -38,8 +46,14 @@ export class UserController {
     private readonly applicationService: ApplicationService,
     private readonly clubService: ClubService,
     private readonly userService: UserService,
+    private readonly scheduleService: ScheduleService,
   ) {}
 
+  /// Account
+
+  /**
+   * Club member withdrawl
+   */
   @Delete()
   async deleteAccount(@JwtPayload() jwtPayload: JwtPayloadEntity) {
     await this.policyService
@@ -49,10 +63,13 @@ export class UserController {
     await this.userService.deleteUser(jwtPayload.userId);
   }
 
+  /// Clubs
+
   /**
    * Get joined club ids of user.
    * If `onlyManaging` is true, return only ids of clubs of which the user is an admin
    */
+  @ApiTags('user-clubs')
   @Get('clubs')
   async getJoinedClubs(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -70,6 +87,7 @@ export class UserController {
   /**
    * Get starred club id of user. 404 if there is no starred club of a user
    */
+  @ApiTags('user-clubs')
   @Get('starred-club')
   async getStarredClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -84,9 +102,12 @@ export class UserController {
     return result;
   }
 
+  /// Subscriptions
+
   /**
    * Get subscribed club ids of user.
    */
+  @ApiTags('subcriptions')
   @Get('subscriptions')
   async getSubscriptions(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -101,11 +122,12 @@ export class UserController {
   /**
    * Subscribe a club
    */
+  @ApiTags('subcriptions')
   @Post('subscriptions')
   @HttpCode(201)
   async subscribeClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Body('clubId', ParseUUIDPipe) clubId: string,
+    @Body() { clubId }: SubscribeDto,
   ): Promise<void> {
     await this.policyService
       .user(jwtPayload.userId)
@@ -117,11 +139,12 @@ export class UserController {
   /**
    * Unsubscribe a club
    */
+  @ApiTags('subcriptions')
   @Delete('subscriptions')
   @HttpCode(204)
   async unsubscribeClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
-    @Body('clubId', ParseUUIDPipe) clubId: string,
+    @Body() { clubId }: SubscribeDto,
   ): Promise<void> {
     await this.policyService
       .user(jwtPayload.userId)
@@ -130,9 +153,12 @@ export class UserController {
     await this.clubService.createSubscription(jwtPayload.userId, clubId);
   }
 
+  /// Applications
+
   /**
    * Make application for the club
    */
+  @ApiTags('applications')
   @Post('applications')
   async applyForClub(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -154,6 +180,7 @@ export class UserController {
   /**
    * Read user's applications
    */
+  @ApiTags('applications')
   @Get('applications')
   async getApplicationListOfUser(@JwtPayload() jwtPayload: JwtPayloadEntity) {
     await this.policyService
@@ -168,6 +195,7 @@ export class UserController {
   /**
    * Cancel user's applications
    */
+  @ApiTags('applications')
   @Delete('applications/:applicationId')
   async cancelApplication(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -184,5 +212,50 @@ export class UserController {
 
     if (result === null) throw new ForbiddenException();
     return result;
+  }
+
+  /// Schedules (MySchedule)
+
+  /**
+   * Scrab a schedule to the list of user's MySchedule
+   */
+  @ApiTags('schedules')
+  @ApiTags('user-schedules (MySchedule)')
+  @Post('/schedules')
+  async createMySchedule(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Body() createScheduleDto: MyScheduleCreateDto,
+  ): Promise<MyScheduleDto> {
+    const mySchedule = await this.scheduleService.createMySchedule(
+      jwtPayload,
+      createScheduleDto,
+    );
+    return plainToClass(MyScheduleDto, mySchedule);
+  }
+
+  /**
+   * Get a list of MySchedule
+   */
+  @ApiTags('schedules')
+  @ApiTags('user-schedules (MySchedule)')
+  @Get('/schedules')
+  async getMySchedules(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+  ): Promise<ScheduleDto[]> {
+    return await this.scheduleService.getMySchedules(jwtPayload.userId);
+  }
+
+  /**
+   * Delete a schedule from user's MySchedule list
+   */
+  @ApiTags('schedules')
+  @ApiTags('user-schedules (MySchedule)')
+  @Delete('/schedules/:scheduleId')
+  @HttpCode(204)
+  async removeMySchedule(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Param('scheduleId', ParseUUIDPipe) scheduleId: string,
+  ): Promise<void> {
+    await this.scheduleService.removeMySchedule(jwtPayload.userId, scheduleId);
   }
 }
