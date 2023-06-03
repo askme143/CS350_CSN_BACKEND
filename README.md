@@ -16,7 +16,8 @@ Backend Application of Club Social Network
 ```bash
 $ docker-compose -f postgresql/postgres-13.yml up -d
 $ npm install
-$ npx prisma migrate dev --name init
+$ npx prisma migrate dev
+$ npx prisma generate
 ```
 
 ## Running the app
