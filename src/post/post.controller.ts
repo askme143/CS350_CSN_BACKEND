@@ -43,6 +43,11 @@ export class PostController {
     private readonly postService: PostService,
   ) {}
 
+  /// Posts
+
+  /**
+   * Get public posts from subscribed or joined clubs
+   */
   @Get()
   async getPublicPosts(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -58,6 +63,9 @@ export class PostController {
     );
   }
 
+  /**
+   * Get detail of the post.
+   */
   @Get(':postId')
   async getPost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -76,6 +84,9 @@ export class PostController {
     }
   }
 
+  /**
+   * Edit a post. Only author can make this request.
+   */
   @Patch(':postId')
   async updatePost(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -89,6 +100,10 @@ export class PostController {
     return await this.postService.updatePost(jwtPayload.userId, postId, body);
   }
 
+  /**
+   * Delete a post.
+   * Only author and amin of the club can make this request.
+   */
   @Delete(':postId')
   @HttpCode(204)
   async deletePost(
@@ -101,6 +116,12 @@ export class PostController {
     await this.postService.deletePost(postId);
   }
 
+  /// Comments
+
+  /**
+   * Make a comment on a post.
+   */
+  @ApiTags('comments')
   @Post(':postId/comments')
   async createComment(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -118,6 +139,10 @@ export class PostController {
     );
   }
 
+  /**
+   * Get list of a comment
+   */
+  @ApiTags('comments')
   @Get(':postId/comments')
   async getComments(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -130,6 +155,10 @@ export class PostController {
     return await this.postService.getComments(postId);
   }
 
+  /**
+   * Update a comment. Only the author of the comment can make this request.
+   */
+  @ApiTags('comments')
   @Patch(':postId/comments/:commentId')
   async updateComment(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
@@ -144,6 +173,10 @@ export class PostController {
     return await this.postService.updateComment(commentId, body);
   }
 
+  /**
+   * Delete a comment. Only the author of the comment or the admin of the club can make this request.
+   */
+  @ApiTags('comments')
   @Delete(':postId/comments/:commentId')
   @HttpCode(204)
   async deleteComment(
@@ -158,6 +191,12 @@ export class PostController {
     return await this.postService.deleteComment(commentId);
   }
 
+  /// Likes
+
+  /**
+   * Like a post.
+   */
+  @ApiTags('likes')
   @Put(':postId/likes')
   @HttpCode(201)
   async like(
@@ -171,6 +210,10 @@ export class PostController {
     await this.postService.like(jwtPayload.userId, postId);
   }
 
+  /**
+   * Unlike a post.
+   */
+  @ApiTags('likes')
   @Delete(':postId/likes')
   @HttpCode(204)
   async unlike(

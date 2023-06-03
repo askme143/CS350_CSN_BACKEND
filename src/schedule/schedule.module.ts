@@ -7,8 +7,15 @@ import { ScheduleService } from './schedule.service';
 import { ClubModule } from 'src/club/club.module';
 
 @Module({
-  imports: [PolicyModule, StorageModule, PrismaModule, ClubModule],
+  imports: [
+    PolicyModule,
+    StorageModule,
+    PrismaModule,
+    ClubModule,
+    ScheduleModule,
+  ],
   controllers: [ScheduleController],
   providers: [ScheduleService],
+  exports: [ScheduleService],
 })
 export class ScheduleModule {}
