@@ -75,7 +75,10 @@ export class ScheduleController {
     @Param('scheduleId', new ParseUUIDPipe()) scheduleId: string,
   ): Promise<ScheduleDto> {
     // todo: policy
-    const result = await this.scheduleService.getSchedule(scheduleId);
+    const result = await this.scheduleService.getSchedule(
+      jwtPayload.userId,
+      scheduleId,
+    );
 
     if (result === null) {
       throw new NotFoundException();
@@ -94,7 +97,10 @@ export class ScheduleController {
     @Param('scheduleId', ParseUUIDPipe) scheduleId: string,
   ): Promise<void> {
     // todo: policy
-    const schedule = await this.scheduleService.getSchedule(scheduleId);
+    const schedule = await this.scheduleService.getSchedule(
+      jwtPayload.userId,
+      scheduleId,
+    );
     if (schedule === null || schedule == undefined)
       throw new NotFoundException();
     await this.scheduleService.removeSchedule(scheduleId);
