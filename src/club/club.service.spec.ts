@@ -69,6 +69,9 @@ describe('ClubService', () => {
         prismaService.member.findFirst = jest
           .fn()
           .mockResolvedValue(mockDeep<Member>());
+        prismaService.subscription.findFirst = jest
+          .fn()
+          .mockResolvedValue(mockDeep<Subscription>());
 
         expect(
           await clubService['makeClubInfoDtoFromClubEntity'](
@@ -80,6 +83,7 @@ describe('ClubService', () => {
             ...clubEntity,
             isAdmin: true,
             memberCount,
+            subscribed: true,
           }),
         );
       });
