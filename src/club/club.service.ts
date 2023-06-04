@@ -41,8 +41,20 @@ export class ClubService {
           isDeleted: false,
         },
       })) !== null;
+    const subscribed =
+      (await this.prismaService.subscription.findFirst({
+        where: {
+          userId,
+          clubId,
+        },
+      })) !== null;
 
-    return plainToClass(ClubInfoDto, { ...clubEntity, isAdmin, memberCount });
+    return plainToClass(ClubInfoDto, {
+      ...clubEntity,
+      isAdmin,
+      memberCount,
+      subscribed,
+    });
   }
 
   async createClub(

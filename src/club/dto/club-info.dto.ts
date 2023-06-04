@@ -6,6 +6,9 @@ export class ClubInfoDto extends ClubEntity implements IClub {
   @IsBoolean()
   isAdmin: boolean;
 
+  @IsBoolean()
+  subscribed: boolean;
+
   @IsInt()
   memberCount: number;
 }
