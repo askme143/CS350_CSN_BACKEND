@@ -170,7 +170,11 @@ export class PostController {
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new UpdateComment(commentId));
 
-    return await this.postService.updateComment(commentId, body);
+    return await this.postService.updateComment(
+      jwtPayload.userId,
+      commentId,
+      body,
+    );
   }
 
   /**

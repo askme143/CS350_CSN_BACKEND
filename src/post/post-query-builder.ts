@@ -130,7 +130,9 @@ export class PostQueryBuilder {
             As "commentCount",
           (count(l."authorId"=${userId}::uuid)
             Over (Partition By p.id)) > 0
-            As liked
+            As liked,
+          p."authorId"=${userId}::uuid
+            As "isAuthor"
         ${template.fromTable} as p
         LEFT JOIN service."Like" as l
           ON l."postId" = p.id AND l."isDeleted" = false

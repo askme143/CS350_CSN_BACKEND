@@ -65,7 +65,7 @@ export class PostService {
   }
 
   async createClubPost(userId: string, clubId: string, args: CreatePostDto) {
-    const postWithUsername = await this.prismaService.post.create({
+    const result = await this.prismaService.post.create({
       data: {
         ...args,
         clubId,
@@ -75,15 +75,16 @@ export class PostService {
         author: {
           select: {
             username: true,
+            id: true,
           },
         },
       },
     });
 
     const {
-      author: { username: authorname },
+      author: { username: authorname, id: authorId },
       ...post
-    } = postWithUsername;
+    } = result;
 
     const postInfo: PostInfoDto = {
       ...post,
@@ -91,6 +92,7 @@ export class PostService {
       likeCount: 0,
       liked: false,
       commentCount: 0,
+      isAuthor: authorId === userId,
     };
     return plainToInstance(PostInfoDto, postInfo);
   }
@@ -157,6 +159,7 @@ export class PostService {
     const commentInfoDto: CommentInfoDto = {
       ...result,
       authorname,
+      isAuthor: true,
     };
 
     return plainToInstance(CommentInfoDto, commentInfoDto);
@@ -191,11 +194,12 @@ export class PostService {
   }
 
   async updateComment(
+    userId: string,
     commentId: string,
     args: UpdateCommentDto,
   ): Promise<CommentInfoDto> {
     const {
-      user: { username: authorname },
+      user: { username: authorname, id: authorId },
       ...comment
     } = await this.prismaService.comment.update({
       where: { commentId },
@@ -204,6 +208,7 @@ export class PostService {
         user: {
           select: {
             username: true,
+            id: true,
           },
         },
       },
@@ -212,6 +217,7 @@ export class PostService {
     const infoDto: CommentInfoDto = {
       ...comment,
       authorname,
+      isAuthor: userId === authorId,
     };
 
     return plainToInstance(CommentInfoDto, infoDto);

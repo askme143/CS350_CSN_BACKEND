@@ -41,6 +41,7 @@ export class ScheduleService {
               author: {
                 select: {
                   username: true,
+                  id: true,
                 },
               },
             },
@@ -54,9 +55,13 @@ export class ScheduleService {
           .then((results) =>
             _.map(
               results,
-              ({ author: { username: authorname }, ...schedule }) => ({
+              ({
+                author: { username: authorname, id: authorId },
+                ...schedule
+              }) => ({
                 ...schedule,
                 authorname,
+                isAuthor: authorId === userId,
               }),
             ),
           );
@@ -78,22 +83,26 @@ export class ScheduleService {
     });
   }
 
-  async getSchedule(scheduleId: string): Promise<ScheduleDto | null> {
+  async getSchedule(
+    userId: string,
+    scheduleId: string,
+  ): Promise<ScheduleDto | null> {
     const result = await this.prismaService.schedule.findUnique({
       where: { id: scheduleId },
-      include: { author: { select: { username: true } } },
+      include: { author: { select: { username: true, id: true } } },
     });
 
     if (result === null) return null;
 
     const {
-      author: { username: authorname },
+      author: { username: authorname, id: authorId },
       ...schedule
     } = result;
 
     return plainToInstance(ScheduleDto, {
       ...schedule,
       authorname,
+      isAuthor: authorId === userId,
     });
   }
 
@@ -132,6 +141,7 @@ export class ScheduleService {
             author: {
               select: {
                 username: true,
+                id: true,
               },
             },
           },
@@ -142,13 +152,14 @@ export class ScheduleService {
     const schedules = await Promise.all(
       _.map(mySchedules, (mySchedule) => {
         const {
-          author: { username: authorname },
+          author: { username: authorname, id: authorId },
           ...schedule
         } = mySchedule.schedule;
 
         return plainToClass(ScheduleDto, {
           ...schedule,
           authorname,
+          isAuthor: authorId === userId,
         });
       }),
     );

@@ -112,7 +112,7 @@ describe('ClubService', () => {
       jest
         .spyOn(prismaService.schedule, 'findUnique')
         .mockResolvedValue(scheduleMock);
-      const result = await scheduleService.getSchedule(scheduleId);
+      const result = await scheduleService.getSchedule(userId, scheduleId);
 
       expect(result).toEqual(expect.objectContaining({ id: scheduleId }));
       expect(result).toBeInstanceOf(ScheduleDto);

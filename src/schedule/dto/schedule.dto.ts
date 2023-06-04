@@ -1,6 +1,6 @@
 import { OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { MyScheduleEntity, ScheduleEntity } from '../entities/schedule.entity';
-import { IsEnum, IsInt, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum ScheduleType {
@@ -9,6 +9,9 @@ export enum ScheduleType {
 }
 
 export class ScheduleDto extends OmitType(ScheduleEntity, ['isDeleted']) {
+  @IsBoolean()
+  isAuthor: boolean;
+
   @IsString()
   authorname: string;
 }
