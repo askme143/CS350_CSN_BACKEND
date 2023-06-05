@@ -165,7 +165,7 @@ export class PostService {
     return plainToInstance(CommentInfoDto, commentInfoDto);
   }
 
-  async getComments(postId: string): Promise<CommentInfoDto[]> {
+  async getComments(userId: string, postId: string): Promise<CommentInfoDto[]> {
     const result = await this.prismaService.comment.findMany({
       where: {
         postId,
@@ -175,6 +175,7 @@ export class PostService {
         user: {
           select: {
             username: true,
+            id: true,
           },
         },
       },
@@ -183,10 +184,11 @@ export class PostService {
       },
     });
 
-    const commentInfoDtoList = result.map(
-      ({ user: { username: authorname }, ...item }) => ({
+    const commentInfoDtoList: CommentInfoDto[] = result.map(
+      ({ user: { username: authorname, id: authorId }, ...item }) => ({
         ...item,
         authorname,
+        isAuthor: authorId === userId,
       }),
     );
 
