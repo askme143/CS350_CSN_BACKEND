@@ -7,6 +7,8 @@ import { ClubEntity } from './entities/club.entity';
 import { ClubInfoDto } from './dto/club-info.dto';
 import { plainToClass } from 'class-transformer';
 import { ApplicationService } from 'src/application/application.service';
+import _ from 'lodash';
+import { MemberDto } from './dto/member.dto';
 
 export interface IGetClubListArg {
   lastClubName?: string;
@@ -248,6 +250,16 @@ export class ClubService {
     });
 
     return result.map((item) => item.userId);
+  }
+
+  async getMembers(clubId: string): Promise<MemberDto[]> {
+    const result = await this.prismaService.member.findMany({
+      where: {
+        clubId,
+      },
+    });
+
+    return result;
   }
 
   async updateUserPrivilege(
