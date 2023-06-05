@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 import { CreateClubDto } from './dto/create-club.dto';
 import { ClubEntity } from './entities/club.entity';
 import { ClubInfoDto } from './dto/club-info.dto';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { ApplicationService } from 'src/application/application.service';
 import _ from 'lodash';
 import { MemberDto } from './dto/member.dto';
@@ -243,6 +243,7 @@ export class ClubService {
     const result = await this.prismaService.member.findMany({
       where: {
         clubId,
+        isDeleted: false,
       },
       select: {
         userId: true,
@@ -256,10 +257,20 @@ export class ClubService {
     const result = await this.prismaService.member.findMany({
       where: {
         clubId,
+        isDeleted: false,
+      },
+      include: {
+        user: {
+          select: { username: true },
+        },
       },
     });
 
-    return result;
+    const memberDtoList: MemberDto[] = result.map(
+      ({ user: { username }, ...membership }) => ({ ...membership, username }),
+    );
+
+    return plainToInstance(MemberDto, memberDtoList);
   }
 
   async updateUserPrivilege(

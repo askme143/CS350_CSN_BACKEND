@@ -42,6 +42,7 @@ import { ApplicationService } from 'src/application/application.service';
 import { ApplicationStatusDto } from 'src/application/dto/application-status.dto';
 import { ApplicationEntity } from 'src/application/entities/application.entity';
 import { MemberDto } from './dto/member.dto';
+import { UpdatePrivilegeDto } from './dto/update-privilege.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -268,7 +269,7 @@ export class ClubController {
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-    @Body('adminPrivilege', ParseBoolPipe) adminPrivilege: boolean,
+    @Body() { adminPrivilege }: UpdatePrivilegeDto,
   ) {
     await this.policyService
       .user(jwtPayload.userId)
