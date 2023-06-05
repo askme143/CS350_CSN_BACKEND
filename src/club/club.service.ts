@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 import { CreateClubDto } from './dto/create-club.dto';
 import { ClubEntity } from './entities/club.entity';
 import { ClubInfoDto } from './dto/club-info.dto';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { ApplicationService } from 'src/application/application.service';
 import _ from 'lodash';
 import { MemberDto } from './dto/member.dto';
@@ -257,9 +257,18 @@ export class ClubService {
       where: {
         clubId,
       },
+      include: {
+        user: {
+          select: { username: true },
+        },
+      },
     });
 
-    return result;
+    const memberDtoList: MemberDto[] = result.map(
+      ({ user: { username }, ...membership }) => ({ ...membership, username }),
+    );
+
+    return plainToInstance(MemberDto, memberDtoList);
   }
 
   async updateUserPrivilege(
