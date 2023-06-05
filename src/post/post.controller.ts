@@ -152,7 +152,7 @@ export class PostController {
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new ReadCommentOfPost(postId));
 
-    return await this.postService.getComments(postId);
+    return await this.postService.getComments(jwtPayload.userId, postId);
   }
 
   /**
