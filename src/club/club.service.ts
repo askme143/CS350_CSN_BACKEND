@@ -243,6 +243,7 @@ export class ClubService {
     const result = await this.prismaService.member.findMany({
       where: {
         clubId,
+        isDeleted: false,
       },
       select: {
         userId: true,
@@ -256,6 +257,7 @@ export class ClubService {
     const result = await this.prismaService.member.findMany({
       where: {
         clubId,
+        isDeleted: false,
       },
       include: {
         user: {
