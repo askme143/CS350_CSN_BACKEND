@@ -150,7 +150,7 @@ export class UserController {
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new SubscribeOrUnsubscribe(clubId, 'UNSUBSCRIBE'));
 
-    await this.clubService.createSubscription(jwtPayload.userId, clubId);
+    await this.clubService.deleteSubscription(jwtPayload.userId, clubId);
   }
 
   /// Applications
