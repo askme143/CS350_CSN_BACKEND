@@ -41,6 +41,7 @@ import { CreateClubPost, ReadClubPost } from 'src/policy/post-policy';
 import { ApplicationService } from 'src/application/application.service';
 import { ApplicationStatusDto } from 'src/application/dto/application-status.dto';
 import { ApplicationEntity } from 'src/application/entities/application.entity';
+import { MemberDto } from './dto/member.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('clubs')
@@ -250,12 +251,12 @@ export class ClubController {
   async getMembers(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Param('clubId', ParseUUIDPipe) clubId: string,
-  ): Promise<string[]> {
+  ): Promise<MemberDto[]> {
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new ReadMemberInfo(clubId));
 
-    return await this.clubService.getMemberIdList(clubId);
+    return await this.clubService.getMembers(clubId);
   }
 
   /**
