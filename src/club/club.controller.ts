@@ -11,7 +11,6 @@ import {
   ParseUUIDPipe,
   Body,
   ForbiddenException,
-  ParseBoolPipe,
 } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'src/auth/jwt-payload.decorator';
