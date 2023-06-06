@@ -232,7 +232,16 @@ export class ClubService {
         subscriptions: cascadeUpdateArg,
         clubPosts: cascadeUpdateArg,
         clubSchedules: cascadeUpdateArg,
-        applications: cascadeUpdateArg,
+        applications: {
+          updateMany: {
+            where: {
+              clubId,
+            },
+            data: {
+              status: 'CANCELED',
+            },
+          },
+        },
       },
     });
   }
