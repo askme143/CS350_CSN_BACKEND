@@ -75,8 +75,7 @@ export class UserController {
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
-
-    const result = this.userService.findUserById(query.id);
+    const result = await this.userService.findUserById(query.id);
     if (result == null) throw new NotFoundException();
     return plainToClass(UserDto, result);
   }
