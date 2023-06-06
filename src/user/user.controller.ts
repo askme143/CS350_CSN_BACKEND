@@ -36,6 +36,7 @@ import {
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { SubscribeDto } from './dto/subscribe.dto';
 import { UserService } from './user.service';
+import { UserDto } from './dto/user.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('user')
@@ -61,6 +62,22 @@ export class UserController {
       .shouldBeAbleTo(new DeleteAccount(jwtPayload.userId));
 
     await this.userService.deleteUser(jwtPayload.userId);
+  }
+
+  /**
+   * Get user info with id
+   */
+  @Get('info')
+  async getUserInfo(
+    @JwtPayload() jwtPayload: JwtPayloadEntity,
+  ): Promise<UserDto> {
+    await this.policyService
+      .user(jwtPayload.userId)
+      .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
+
+    const result = this.userService.findUserById(jwtPayload.userId);
+    if (result == null) throw new NotFoundException();
+    return plainToClass(UserDto, result);
   }
 
   /// Clubs
