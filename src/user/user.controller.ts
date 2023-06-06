@@ -36,7 +36,7 @@ import {
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { SubscribeDto } from './dto/subscribe.dto';
 import { UserService } from './user.service';
-import { UserDto } from './dto/user.dto';
+import { GetUserDto, UserDto } from './dto/user.dto';
 
 @ApiSecurity('Authentication')
 @ApiTags('user')
@@ -70,12 +70,13 @@ export class UserController {
   @Get('info')
   async getUserInfo(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
+    @Query() query: GetUserDto,
   ): Promise<UserDto> {
     await this.policyService
       .user(jwtPayload.userId)
       .shouldBeAbleTo(new ReadUserInfo(jwtPayload.userId));
 
-    const result = this.userService.findUserById(jwtPayload.userId);
+    const result = this.userService.findUserById(query.id);
     if (result == null) throw new NotFoundException();
     return plainToClass(UserDto, result);
   }
