@@ -65,9 +65,9 @@ export class UserController {
   }
 
   /**
-   * Get user info with id
+   * Get user with id
    */
-  @Get('info')
+  @Get('')
   async getUserInfo(
     @JwtPayload() jwtPayload: JwtPayloadEntity,
     @Query() query: GetUserDto,
