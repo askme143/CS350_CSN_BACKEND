@@ -92,17 +92,37 @@ export class ApplicationService {
     });
     if (application === null) return null;
 
-    const result = await this.prismaService.application.update({
-      where: {
-        id: applicationId,
-      },
-      data: {
-        status,
-        updatedAt: new Date(),
-      },
-    });
+    const resultPromise: Promise<ApplicationEntity> =
+      this.prismaService.application.update({
+        where: {
+          id: applicationId,
+        },
+        data: {
+          status,
+          updatedAt: new Date(),
+        },
+      });
 
-    return plainToInstance(ApplicationEntity, result);
+    if (status === 'ACCEPTED') {
+      await this.prismaService.member.upsert({
+        where: {
+          userId_clubId: {
+            userId: application.applicantId,
+            clubId: application.clubId,
+          },
+        },
+        update: {
+          isDeleted: false,
+        },
+        create: {
+          userId: application.applicantId,
+          clubId: application.clubId,
+          isAdmin: false,
+        },
+      });
+    }
+
+    return plainToInstance(ApplicationEntity, await resultPromise);
   }
 
   async rejectAllPendingApplications(clubId: string): Promise<void> {
